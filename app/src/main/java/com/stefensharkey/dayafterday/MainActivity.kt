@@ -2,7 +2,6 @@ package com.stefensharkey.dayafterday
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.graphics.Matrix
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
