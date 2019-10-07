@@ -113,7 +113,6 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
         imageCapture = ImageCapture(imageCaptureConfig)
 
         // Bind use cases to lifecycle
-        CameraX.getCameraWithLensFacing(lensFacing)
         CameraX.bindToLifecycle(this, viewfinderPreview, imageCapture)
 
         // Build daily picture object for picture capture.
