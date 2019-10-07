@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
 
     val logTag = "Day After Day"
 
-    lateinit var preview: Preview
+    lateinit var viewfinderPreview: Preview
     lateinit var dailyPicture: DailyPicture
     lateinit var imageCapture: ImageCapture
 
@@ -40,12 +40,14 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // If all the permissions required are granted, show the camera; otherwise, request the permissions.
         if (allPermissionsGranted()) {
             viewfinder.post { startCamera() }
         } else {
             ActivityCompat.requestPermissions(this, requiredPermissions, requestCodePermissions)
         }
 
+        // Transform the viewfinder as necessary upon every layout change.
         viewfinder.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
             updateTransform()
         }
@@ -76,52 +78,51 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
      * Check if all permission specified in the manifest have been granted
      */
     private fun allPermissionsGranted() = requiredPermissions.all {
-        ContextCompat.checkSelfPermission(
-            baseContext, it) == PackageManager.PERMISSION_GRANTED
+        ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun startCamera() {
-        // Create configuration object for the viewfinder
+        // Create configuration object for the viewfinder.
          val previewConfig = PreviewConfig.Builder().apply {
             setLensFacing(lensFacing)
-
             setTargetResolution(Size(viewfinder.width, viewfinder.height))
             setTargetAspectRatio(Rational(viewfinder.width, viewfinder.height))
         }.build()
 
         // Build the viewfinder
-        preview = Preview(previewConfig)
+        viewfinderPreview = Preview(previewConfig)
 
         // Every time the viewfinder is updated, recompute layout.
-        preview.setOnPreviewOutputUpdateListener {
+        viewfinderPreview.setOnPreviewOutputUpdateListener {
             // To update the SurfaceTexture, we have to remove it and re-add it.
             val parent = viewfinder.parent as ViewGroup
-
             parent.removeView(viewfinder)
             parent.addView(viewfinder, 0)
-
             viewfinder.surfaceTexture = it.surfaceTexture
             updateTransform()
         }
 
+        // Create configuration object for the image capture.
         val imageCaptureConfig: ImageCaptureConfig = ImageCaptureConfig.Builder().apply {
             setLensFacing(lensFacing)
             setTargetAspectRatio(previewConfig.targetAspectRatio)
             setCaptureMode(ImageCapture.CaptureMode.MIN_LATENCY)
         }.build()
 
+        // Build the image capture.
         imageCapture = ImageCapture(imageCaptureConfig)
 
         // Bind use cases to lifecycle
-        // If Android Studio complains about "this" being not a LifecycleOwner
-        // try rebuilding the project or updating the appcompat dependency to
-        // version 1.1.0 or higher.
         CameraX.getCameraWithLensFacing(lensFacing)
-        CameraX.bindToLifecycle(this, preview, imageCapture)
+        CameraX.bindToLifecycle(this, viewfinderPreview, imageCapture)
 
+        // Build daily picture object for picture capture.
         dailyPicture = DailyPicture(this, imageCapture)
     }
 
+    /**
+     * Unbind camera use cases for safely stopping the camera.
+     */
     private fun stopCamera(preview: Preview) {
         CameraX.unbind(preview, imageCapture)
     }
@@ -146,24 +147,36 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
         viewfinder.setTransform(matrix)
     }
 
+    /**
+     * Upon the take picture button being pressed, takes a picture.
+     */
     fun takePicture(view: View) {
         dailyPicture.takePicture()
     }
 
+    /**
+     * Upon the switch camera button being pressed, switch the camera.
+     */
     fun switchCamera(view: View) {
-        if (lensFacing == CameraX.LensFacing.FRONT)
-            lensFacing = CameraX.LensFacing.BACK
+        lensFacing = if (lensFacing == CameraX.LensFacing.FRONT)
+            CameraX.LensFacing.BACK
         else
-            lensFacing = CameraX.LensFacing.FRONT
+            CameraX.LensFacing.FRONT
 
-        stopCamera(preview)
+        stopCamera(viewfinderPreview)
         startCamera()
     }
 
+    /**
+     * Upon the open gallery button being pressed, open the gallery.
+     */
     fun openGallery(view: View) {
         notYetImplemented("Gallery")
     }
 
+    /**
+     * Warn the console and user that the feature desired is not yet implemented.
+     */
     fun notYetImplemented(string: String) {
         val reason = "Not yet implemented: $string"
 
