@@ -25,6 +25,7 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
 
     lateinit var preview: Preview
     lateinit var dailyPicture: DailyPicture
+    lateinit var imageCapture: ImageCapture
 
     private var lensFacing = CameraX.LensFacing.FRONT
 
@@ -110,7 +111,7 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
             setCaptureMode(ImageCapture.CaptureMode.MIN_LATENCY)
         }.build()
 
-        val imageCapture = ImageCapture(imageCaptureConfig)
+        imageCapture = ImageCapture(imageCaptureConfig)
 
         // Bind use cases to lifecycle
         // If Android Studio complains about "this" being not a LifecycleOwner
@@ -123,7 +124,7 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
     }
 
     private fun stopCamera(preview: Preview) {
-        CameraX.unbind(preview)
+        CameraX.unbind(preview, imageCapture)
     }
 
     private fun updateTransform() {
