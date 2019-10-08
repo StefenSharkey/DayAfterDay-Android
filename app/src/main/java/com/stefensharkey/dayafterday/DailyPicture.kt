@@ -36,7 +36,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 
 class DailyPicture(
-    private val context: Context,
+    private val context: Context?,
     private val imageCapture: ImageCapture,
     private val viewfinder: View,
     private val prev_picture: ImageView
@@ -53,11 +53,11 @@ class DailyPicture(
         val date = SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", locale).format(Calendar.getInstance().time)
 
         // Gets the lens facing descriptor.
-        val lensFacing = if (MainActivity().lensFacing == CameraX.LensFacing.FRONT) "F" else "B"
+        val lensFacing = if (MainFragment().lensFacing == CameraX.LensFacing.FRONT) "F" else "B"
 
         // Gets the desired directory and file names.
         val fileName = "DayAfterDay-$date-$lensFacing.jpg"
-        val file = File(MainActivity().fileDir, fileName)
+        val file = File(MainFragment().fileDir, fileName)
 
         imageCapture.takePicture(file,
             object: ImageCapture.OnImageSavedListener {
@@ -80,7 +80,7 @@ class DailyPicture(
                     // Implicit broadcasts will be ignored for devices running API
                     // level >= 24, so if you only target 24+ you can remove this statement
                     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                        context.sendBroadcast(Intent(Camera.ACTION_NEW_PICTURE, Uri.fromFile(file)))
+                        context!!.sendBroadcast(Intent(Camera.ACTION_NEW_PICTURE, Uri.fromFile(file)))
                     }
 
                     // If the folder selected is an external media directory, this is unnecessary
@@ -89,7 +89,7 @@ class DailyPicture(
                     val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension)
                     MediaScannerConnection.scanFile(context, arrayOf(file.absolutePath), arrayOf(mimeType), null)
 
-                    MainActivity().createPreviousPicture(prev_picture)
+                    MainFragment().createPreviousPicture(prev_picture)
 
                     Log.d(MainActivity().logTag, "Photo saved: ${file.absoluteFile}")
                 }
