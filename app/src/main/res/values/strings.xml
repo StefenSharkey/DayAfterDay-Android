@@ -15,4 +15,6 @@
 -->
 <resources>
     <string name="app_name">Day After Day</string>
+
+    <string name="prev_picture_desc">Previous Picture</string>
 </resources>

@@ -23,23 +23,23 @@ import android.hardware.Camera
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
-import android.os.Environment
 import android.util.Log
 import android.view.View
 import android.view.animation.AlphaAnimation
 import android.webkit.MimeTypeMap
+import android.widget.ImageView
 import androidx.camera.core.ImageCapture
 import android.widget.Toast
-import androidx.camera.core.Preview
-import kotlinx.android.synthetic.main.activity_main.*
+import androidx.camera.core.CameraX
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
 class DailyPicture(
     private val context: Context,
+    private val imageCapture: ImageCapture,
     private val viewfinder: View,
-    private val imageCapture: ImageCapture
+    private val prev_picture: ImageView
 ) {
 
     fun takePicture() {
@@ -52,13 +52,12 @@ class DailyPicture(
         // Formats the date and time as desired..
         val date = SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", locale).format(Calendar.getInstance().time)
 
-        // Gets the desired directory and file names.
-        // TODO: Use MediaStore or another framework so that other applications are able to view the files.
-        val dirName = "${Environment.getExternalStorageDirectory()}/DayAfterDay"
-        val fileName = "DayAfterDay-$date.jpg"
-        val file = File(dirName, fileName)
+        // Gets the lens facing descriptor.
+        val lensFacing = if (MainActivity().lensFacing == CameraX.LensFacing.FRONT) "F" else "B"
 
-        Log.d(MainActivity().logTag, File(dirName).mkdir().toString())
+        // Gets the desired directory and file names.
+        val fileName = "DayAfterDay-$date-$lensFacing.jpg"
+        val file = File(MainActivity().fileDir, fileName)
 
         imageCapture.takePicture(file,
             object: ImageCapture.OnImageSavedListener {
@@ -90,6 +89,8 @@ class DailyPicture(
                     val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension)
                     MediaScannerConnection.scanFile(context, arrayOf(file.absolutePath), arrayOf(mimeType), null)
 
+                    MainActivity().createPreviousPicture(prev_picture)
+
                     Log.d(MainActivity().logTag, "Photo saved: ${file.absoluteFile}")
                 }
             }
@@ -98,6 +99,9 @@ class DailyPicture(
         Log.d(MainActivity().logTag, file.absolutePath)
     }
 
+    /**
+     * Flash the screen to indicate to the user that the picture has been taken.
+     */
     private fun flashScreen() {
         val animation = AlphaAnimation(0.0F, 1.0F)
         animation.duration = 250

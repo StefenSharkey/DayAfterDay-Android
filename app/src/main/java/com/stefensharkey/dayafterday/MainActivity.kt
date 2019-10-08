@@ -19,22 +19,27 @@ package com.stefensharkey.dayafterday
 import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Matrix
+import android.graphics.drawable.Drawable
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.util.Rational
 import android.util.Size
 import android.view.Surface
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.SeekBar
 import android.widget.Toast
 import androidx.camera.core.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import kotlinx.android.synthetic.main.activity_main.*
+import java.io.File
 
-class MainActivity : AppCompatActivity(), LifecycleOwner {
+class MainActivity : AppCompatActivity(), LifecycleOwner, SeekBar.OnSeekBarChangeListener {
 
     val logTag = "Day After Day"
 
@@ -42,7 +47,7 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
     private lateinit var dailyPicture: DailyPicture
     private lateinit var imageCapture: ImageCapture
 
-    private var lensFacing = CameraX.LensFacing.FRONT
+    var lensFacing = CameraX.LensFacing.FRONT
 
     // This is an arbitrary number we are using to keep tab of the permission
     // request. Where an app has multiple context for requesting permission,
@@ -52,9 +57,14 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
     // This is an array of all the permission specified in the manifest
     private val requiredPermissions = arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
+    val fileDir = File("${Environment.getExternalStorageDirectory()}/DayAfterDay")
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // Create the picture directory.
+        fileDir.mkdir()
 
         // If all the permissions required are granted, show the camera; otherwise, request the permissions.
         if (allPermissionsGranted()) {
@@ -67,6 +77,10 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
         viewfinder.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
             updateTransform()
         }
+
+        prev_picture_slider.setOnSeekBarChangeListener(this)
+        prev_picture.alpha = prev_picture_slider.progress.toFloat() / 100.0F
+        createPreviousPicture(prev_picture)
     }
 
     /**
@@ -96,6 +110,31 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
     private fun allPermissionsGranted() = requiredPermissions.all {
         ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
     }
+
+    /**
+     * Create a shadow of the previous picture controlled by the previous picture SeekBar.
+     */
+    fun createPreviousPicture(prevPicture: ImageView) {
+        // Check if file list is empty. If yes, do nothing.
+        val files = fileDir.listFiles()
+        if (files != null) {
+            // Sort the files and obtain the last one.
+            val file = files.sortedArray().last()
+            prevPicture.setImageDrawable(Drawable.createFromPath(file.absolutePath))
+
+            // If the picture was taken with the front camera, flip the image horizontally to match the viewfinder.
+            if (file.nameWithoutExtension.last()== 'F')
+                prevPicture.scaleX = -1.0F
+        }
+    }
+
+    override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+        prev_picture.alpha = progress.toFloat() / 100.0F
+    }
+
+    override fun onStartTrackingTouch(seekBar: SeekBar?) { }
+
+    override fun onStopTrackingTouch(seekBar: SeekBar?) { }
 
     private fun startCamera() {
         // Create configuration object for the viewfinder.
@@ -132,7 +171,7 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
         CameraX.bindToLifecycle(this, viewfinderPreview, imageCapture)
 
         // Build daily picture object for picture capture.
-        dailyPicture = DailyPicture(this, viewfinder, imageCapture)
+        dailyPicture = DailyPicture(this, imageCapture, viewfinder, prev_picture)
     }
 
     /**
