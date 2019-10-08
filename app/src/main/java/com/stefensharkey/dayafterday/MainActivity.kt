@@ -73,14 +73,41 @@ class MainActivity : AppCompatActivity(), LifecycleOwner, SeekBar.OnSeekBarChang
             ActivityCompat.requestPermissions(this, requiredPermissions, requestCodePermissions)
         }
 
+        createListeners()
+
+        prev_picture.alpha = prev_picture_slider.progress.toFloat() / 100.0F
+        createPreviousPicture(prev_picture)
+    }
+
+    private fun createListeners() {
         // Transform the viewfinder as necessary upon every layout change.
         viewfinder.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
             updateTransform()
         }
 
+        // Previous Picture SeekBar
         prev_picture_slider.setOnSeekBarChangeListener(this)
-        prev_picture.alpha = prev_picture_slider.progress.toFloat() / 100.0F
-        createPreviousPicture(prev_picture)
+
+        // Take Picture Floating Action Button
+        take_picture.setOnClickListener { takePicture(take_picture) }
+        take_picture.setOnLongClickListener {
+            Toast.makeText(this, getString(R.string.take_picture_desc), Toast.LENGTH_SHORT).show()
+            true
+        }
+
+        // Switch Camera Floating Action Button
+        switch_camera.setOnClickListener { switchCamera(switch_camera) }
+        switch_camera.setOnLongClickListener {
+            Toast.makeText(this, getString(R.string.switch_camera_desc), Toast.LENGTH_SHORT).show()
+            true
+        }
+
+        // Open Gallery Floating Action Button
+        open_gallery.setOnClickListener { openGallery(open_gallery) }
+        open_gallery.setOnLongClickListener {
+            Toast.makeText(this, getString(R.string.open_gallery_desc), Toast.LENGTH_SHORT).show()
+            true
+        }
     }
 
     /**

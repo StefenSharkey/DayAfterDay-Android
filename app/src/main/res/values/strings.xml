@@ -16,5 +16,9 @@
 <resources>
     <string name="app_name">Day After Day</string>
 
+    <!-- Content Descriptions -->
     <string name="prev_picture_desc">Previous Picture</string>
+    <string name="take_picture_desc">Take Picture</string>
+    <string name="switch_camera_desc">Switch Camera</string>
+    <string name="open_gallery_desc">Open Gallery</string>
 </resources>
