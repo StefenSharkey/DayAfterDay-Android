@@ -38,9 +38,9 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
 
     val logTag = "Day After Day"
 
-    lateinit var viewfinderPreview: Preview
-    lateinit var dailyPicture: DailyPicture
-    lateinit var imageCapture: ImageCapture
+    private lateinit var viewfinderPreview: Preview
+    private lateinit var dailyPicture: DailyPicture
+    private lateinit var imageCapture: ImageCapture
 
     private var lensFacing = CameraX.LensFacing.FRONT
 
