@@ -132,7 +132,7 @@ class MainActivity : AppCompatActivity(), LifecycleOwner {
         CameraX.bindToLifecycle(this, viewfinderPreview, imageCapture)
 
         // Build daily picture object for picture capture.
-        dailyPicture = DailyPicture(this, imageCapture)
+        dailyPicture = DailyPicture(this, viewfinder, imageCapture)
     }
 
     /**

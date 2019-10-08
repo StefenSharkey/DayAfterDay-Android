@@ -25,14 +25,22 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.util.Log
+import android.view.View
+import android.view.animation.AlphaAnimation
 import android.webkit.MimeTypeMap
 import androidx.camera.core.ImageCapture
 import android.widget.Toast
+import androidx.camera.core.Preview
+import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
-class DailyPicture(private val context: Context, private val imageCapture: ImageCapture) {
+class DailyPicture(
+    private val context: Context,
+    private val viewfinder: View,
+    private val imageCapture: ImageCapture
+) {
 
     fun takePicture() {
         // Gets the current locale.
@@ -59,6 +67,8 @@ class DailyPicture(private val context: Context, private val imageCapture: Image
                     message: String,
                     cause: Throwable?
                 ) {
+                    flashScreen()
+
                     val msg = "Photo failed to save!"
                     Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
                     Log.e(MainActivity().logTag, msg)
@@ -66,6 +76,8 @@ class DailyPicture(private val context: Context, private val imageCapture: Image
                 }
 
                 override fun onImageSaved(file: File) {
+                    flashScreen()
+
                     // Implicit broadcasts will be ignored for devices running API
                     // level >= 24, so if you only target 24+ you can remove this statement
                     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
@@ -84,5 +96,11 @@ class DailyPicture(private val context: Context, private val imageCapture: Image
         )
 
         Log.d(MainActivity().logTag, file.absolutePath)
+    }
+
+    private fun flashScreen() {
+        val animation = AlphaAnimation(0.0F, 1.0F)
+        animation.duration = 250
+        viewfinder.startAnimation(animation)
     }
 }
