@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <Preference
+        android:id="@+id/preference_version"
+        android:key="preference_version"
+        android:title="@string/preference_version_title" />
+
+    <Preference
+        android:id="@+id/preference_author"
+        android:key="preference_author"
+        android:title="@string/preference_author_title"
+        android:summary="@string/preference_author_summary" />
+
+</PreferenceScreen>

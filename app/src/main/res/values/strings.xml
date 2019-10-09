@@ -16,6 +16,13 @@
 <resources>
     <string name="app_name">Day After Day</string>
 
+    <!-- Setting Titles and Descriptions -->
+    <string name="settings_title">Settings</string>
+    <string name="preference_about_title">About</string>
+    <string name="preference_version_title">Build Version</string>
+    <string name="preference_author_title">Author</string>
+    <string name="preference_author_summary">Stefen Sharkey</string>
+
     <!-- Content Descriptions -->
     <string name="prev_picture_desc">Previous Picture</string>
     <string name="take_picture_desc">Take Picture</string>
