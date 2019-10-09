@@ -184,6 +184,7 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
         imageCapture = ImageCapture(imageCaptureConfig)
 
         // Bind use cases to lifecycle
+        CameraX.unbindAll()
         CameraX.bindToLifecycle(this, viewfinderPreview, imageCapture)
 
         // Build daily picture object for picture capture.
@@ -193,8 +194,8 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
     /**
      * Unbind camera use cases for safely stopping the camera.
      */
-    private fun stopCamera(preview: Preview) {
-        CameraX.unbind(preview, imageCapture)
+    private fun stopCamera() {
+        CameraX.unbindAll()
     }
 
     private fun updateTransform() {
@@ -233,7 +234,7 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
         else
             CameraX.LensFacing.FRONT
 
-        stopCamera(viewfinderPreview)
+        stopCamera()
         startCamera()
     }
 
