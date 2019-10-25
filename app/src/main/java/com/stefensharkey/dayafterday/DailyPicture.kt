@@ -57,7 +57,7 @@ class DailyPicture(
 
         // Gets the desired directory and file names.
         val fileName = "DayAfterDay-$date-$lensFacing.jpg"
-        val file = File(MainFragment().fileDir, fileName)
+        val file = File(Utilities.fileDir, fileName)
 
         imageCapture.takePicture(file,
             object: ImageCapture.OnImageSavedListener {
@@ -70,7 +70,7 @@ class DailyPicture(
 
                     val msg = "Photo failed to save!"
                     Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
-                    Log.e(MainActivity().logTag, msg)
+                    Log.e(Utilities.logTag, msg)
                     cause?.printStackTrace()
                 }
 
@@ -91,12 +91,12 @@ class DailyPicture(
 
                     MainFragment().createPreviousPicture(prev_picture)
 
-                    Log.d(MainActivity().logTag, "Photo saved: ${file.absoluteFile}")
+                    Log.d(Utilities.logTag, "Photo saved: ${file.absoluteFile}")
                 }
             }
         )
 
-        Log.d(MainActivity().logTag, file.absolutePath)
+        Log.d(Utilities.logTag, file.absolutePath)
     }
 
     /**

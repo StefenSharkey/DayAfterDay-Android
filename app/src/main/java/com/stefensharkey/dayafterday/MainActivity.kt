@@ -25,8 +25,6 @@ import androidx.preference.PreferenceManager
 
 class MainActivity : AppCompatActivity() {
 
-    val logTag = "Day After Day"
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)

@@ -23,6 +23,8 @@
     <string name="preference_author_title">Author</string>
     <string name="preference_author_summary">Stefen Sharkey</string>
 
+    <string name="gallery_title">Gallery</string>
+
     <!-- Content Descriptions -->
     <string name="prev_picture_desc">Previous Picture</string>
     <string name="take_picture_desc">Take Picture</string>

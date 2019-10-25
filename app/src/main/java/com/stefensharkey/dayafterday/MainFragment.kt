@@ -1,11 +1,26 @@
+/*
+ * Copyright 2019 Stefen Sharkey
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.stefensharkey.dayafterday
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Matrix
-import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.os.Environment
 import android.util.Log
 import android.util.Rational
 import android.util.Size
@@ -21,7 +36,6 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LifecycleOwner
 import kotlinx.android.synthetic.main.fragment_main.*
-import java.io.File
 
 class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener {
 
@@ -39,8 +53,6 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
     // This is an array of all the permission specified in the manifest
     private val requiredPermissions = arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
-    val fileDir = File("${Environment.getExternalStorageDirectory()}/DayAfterDay")
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -53,7 +65,7 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
         super.onStart()
 
         // Create the picture directory.
-        fileDir.mkdir()
+        Utilities.fileDir.mkdir()
 
         // If all the permissions required are granted, show the camera; otherwise, request the permissions.
         if (allPermissionsGranted()) {
@@ -132,11 +144,11 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
      */
     fun createPreviousPicture(prevPicture: ImageView) {
         // Check if file list is empty. If yes, do nothing.
-        val files = fileDir.listFiles()
+        val files = Utilities.fileDir.listFiles()
         if (files != null) {
             // Sort the files and obtain the last one.
             val file = files.sortedArray().last()
-            prevPicture.setImageDrawable(Drawable.createFromPath(file.absolutePath))
+            prevPicture.setImageDrawable(Utilities.getPreviousPicture())
 
             // If the picture was taken with the front camera, flip the image horizontally to match the viewfinder.
             if (file.nameWithoutExtension.last()== 'F')
@@ -242,7 +254,7 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
      * Upon the open gallery button being pressed, open the gallery.
      */
     fun openGallery(view: View) {
-        notYetImplemented("Gallery")
+        startActivity(Intent(activity, GalleryActivity::class.java))
     }
 
     /**
@@ -252,6 +264,6 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
         val reason = "Not yet implemented: $string"
 
         Toast.makeText(context, reason, Toast.LENGTH_LONG).show()
-        Log.w(MainActivity().logTag, reason)
+        Log.w(Utilities.logTag, reason)
     }
 }

@@ -14,16 +14,15 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
 -->
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <Preference
-        android:id="@+id/preference_version"
-        android:key="preference_version"
-        android:title="@string/preference_version_title" />
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="100dp"
+    android:layout_width="100dp"
+    android:id="@+id/gallery_photo_layout">
 
-    <Preference
-        android:id="@+id/preference_author"
-        android:key="preference_author"
-        android:title="@string/preference_author_title"
-        android:summary="@string/preference_author_summary" />
-
-</PreferenceScreen>
+    <ImageView
+            android:id="@+id/gallery_photo"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@android:drawable/btn_plus"
+            android:scaleType="fitCenter" />
+</FrameLayout>
