@@ -20,9 +20,8 @@
     android:id="@+id/gallery_photo_layout">
 
     <ImageView
-            android:id="@+id/gallery_photo"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:src="@android:drawable/btn_plus"
-            android:scaleType="fitCenter" />
+        android:id="@+id/gallery_photo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitCenter" />
 </FrameLayout>
