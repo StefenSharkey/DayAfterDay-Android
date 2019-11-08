@@ -26,6 +26,7 @@ class Utilities {
 
         val logTag = "Day After Day"
         val fileDir = File("${Environment.getExternalStorageDirectory()}/DayAfterDay")
+        val thumbnailDir = File(fileDir, "thumbnails")
 
         /**
          * Returns the most recent photo taken with this app.
@@ -35,10 +36,45 @@ class Utilities {
             val files = fileDir.listFiles()
             if (files != null) {
                 // Sort the files and return the last one.
-                return Drawable.createFromPath(files.sortedArray().last().absolutePath)!!
+                return Drawable.createFromPath(Utilities.removeDirectories(files.sortedArray()).last().absolutePath)!!
             }
 
             return null
+        }
+
+        /**
+         * Remove directories from the given file list.
+         */
+        fun removeDirectories(files: Array<File>): Array<File> {
+            val fileList = files.toMutableList()
+
+            for (file in fileList) {
+                if (file.isDirectory) {
+                    fileList.remove(file)
+                }
+            }
+
+            return fileList.toTypedArray()
+        }
+
+        fun getThumbnail(path: String): String {
+            val file = File(path)
+
+            // The new name is created by inserting into the old name.
+            val newName = "${file.nameWithoutExtension}-thumb.${file.extension}"
+            return File(thumbnailDir, newName).absolutePath
+        }
+
+        fun getFullPhoto(path: String): String {
+            val file = File(path)
+
+            val oldName = file.nameWithoutExtension
+
+            // The new name is created by removing the length of the thumbnail suffix from the old
+            // name.
+            val newName = oldName.substring(0, oldName.length - 6) + "." + file.extension
+
+            return File(fileDir, newName).absolutePath
         }
     }
 }

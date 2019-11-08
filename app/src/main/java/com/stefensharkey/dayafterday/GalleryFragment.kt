@@ -24,6 +24,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import kotlinx.android.synthetic.main.fragment_gallery.*
+import java.io.File
 
 class GalleryFragment: Fragment() {
 
@@ -40,11 +41,11 @@ class GalleryFragment: Fragment() {
 
         setMainPhoto(Utilities.getPreviousPicture())
 
-        val files = Utilities.fileDir.listFiles()
+        val files = Utilities.thumbnailDir.listFiles()
 
         // Checks if any files exist.
         if (files != null) {
-            // For every file that exists, list their thumbnails in newest to oldest order.
+            // For every thumbnail that exists, list them in newest to oldest order.
             for (file in files.sortedArrayDescending()) {
                 val fragmentTransaction = childFragmentManager.beginTransaction()
                 val fragment = GalleryPhotoFragment()
@@ -57,6 +58,15 @@ class GalleryFragment: Fragment() {
                 fragmentTransaction.add(gallery_photos.id, fragment, tag).commit()
             }
         }
+    }
+
+    /**
+     * Sets the main photo to the drawable at the given path.
+     */
+    fun setMainPhotoFromThumbnail(path: String) {
+        Log.d(Utilities.logTag, path)
+        Log.d(Utilities.logTag, Utilities.getFullPhoto(path))
+        setMainPhoto(Utilities.getFullPhoto(path))
     }
 
     /**

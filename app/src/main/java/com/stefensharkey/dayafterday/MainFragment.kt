@@ -66,6 +66,7 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
 
         // Create the picture directory.
         Utilities.fileDir.mkdir()
+        Utilities.thumbnailDir.mkdir()
 
         // If all the permissions required are granted, show the camera; otherwise, request the permissions.
         if (allPermissionsGranted()) {
@@ -145,13 +146,15 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
     fun createPreviousPicture(prevPicture: ImageView) {
         // Check if file list is empty. If yes, do nothing.
         val files = Utilities.fileDir.listFiles()
+
         if (files != null) {
-            // Sort the files and obtain the last one.
-            val file = files.sortedArray().last()
+            val fileList = Utilities.removeDirectories(files.sortedArray())
+
             prevPicture.setImageDrawable(Utilities.getPreviousPicture())
 
-            // If the picture was taken with the front camera, flip the image horizontally to match the viewfinder.
-            if (file.nameWithoutExtension.last()== 'F')
+            // If the last picture was taken with the front camera, flip the image horizontally to
+            // match the viewfinder.
+            if (fileList.last().nameWithoutExtension.last()== 'F')
                 prevPicture.scaleX = -1.0F
         }
     }

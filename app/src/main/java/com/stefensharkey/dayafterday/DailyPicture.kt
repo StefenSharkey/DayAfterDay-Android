@@ -19,7 +19,11 @@ package com.stefensharkey.dayafterday
 import android.content.Context
 import android.content.Intent
 import android.content.res.Resources
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.hardware.Camera
+import android.icu.util.Output
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
@@ -32,8 +36,12 @@ import androidx.camera.core.ImageCapture
 import android.widget.Toast
 import androidx.camera.core.CameraX
 import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.OutputStream
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import kotlin.math.floor
 
 class DailyPicture(
     private val context: Context?,
@@ -56,8 +64,9 @@ class DailyPicture(
         val lensFacing = if (MainFragment().lensFacing == CameraX.LensFacing.FRONT) "F" else "B"
 
         // Gets the desired directory and file names.
-        val fileName = "DayAfterDay-$date-$lensFacing.jpg"
-        val file = File(Utilities.fileDir, fileName)
+        val fileName = "DayAfterDay-$date-$lensFacing"
+        val fileExtension = ".jpg"
+        val file = File(Utilities.fileDir, fileName + fileExtension)
 
         imageCapture.takePicture(file,
             object: ImageCapture.OnImageSavedListener {
@@ -91,12 +100,54 @@ class DailyPicture(
 
                     MainFragment().createPreviousPicture(prev_picture)
 
+                    // Save a thumbnail for the gallery.
+                    saveThumbnail(file)
+
                     Log.d(Utilities.logTag, "Photo saved: ${file.absoluteFile}")
                 }
             }
         )
 
         Log.d(Utilities.logTag, file.absolutePath)
+    }
+
+    fun saveThumbnail(file: File) {
+        val thumbnail = getThumbnail(Drawable.createFromPath(file.absolutePath)!!).bitmap
+        val thumbnailFile = File(Utilities.thumbnailDir, "${file.nameWithoutExtension}-thumb.${file.extension}")
+
+        try {
+            val stream: OutputStream = FileOutputStream(thumbnailFile)
+
+            thumbnail.compress(Bitmap.CompressFormat.JPEG, 100, stream)
+
+            stream.flush()
+            stream.close()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+
+    }
+
+    fun getThumbnail(originalImage: Drawable): BitmapDrawable {
+        val originalBitmap = (originalImage as BitmapDrawable).bitmap
+
+        var width = originalBitmap.width.toFloat()
+        var height = originalBitmap.height.toFloat()
+        val maxSize = 100.0F
+
+        if (width > maxSize || height > maxSize) {
+            if (width > height) {
+                height = floor((height / width) * maxSize)
+                width = maxSize
+            } else {
+                width = floor((width / height) * maxSize)
+                height = maxSize
+            }
+        }
+
+        val scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, width.toInt(), height.toInt(), false)
+
+        return BitmapDrawable(context?.resources, scaledBitmap)
     }
 
     /**
