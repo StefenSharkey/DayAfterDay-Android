@@ -41,13 +41,15 @@ import java.io.IOException
 import java.io.OutputStream
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.concurrent.ExecutorService
 import kotlin.math.floor
 
 class DailyPicture(
     private val context: Context?,
     private val imageCapture: ImageCapture,
     private val viewfinder: View,
-    private val prev_picture: ImageView
+    private val prev_picture: ImageView,
+    private val executor: ExecutorService
 ) {
 
     fun takePicture() {
@@ -68,7 +70,7 @@ class DailyPicture(
         val fileExtension = ".jpg"
         val file = File(Utilities.fileDir, fileName + fileExtension)
 
-        imageCapture.takePicture(file,
+        imageCapture.takePicture(file, executor,
             object: ImageCapture.OnImageSavedListener {
                 override fun onError(
                     imageCaptureError: ImageCapture.ImageCaptureError,

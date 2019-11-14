@@ -36,6 +36,8 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LifecycleOwner
 import kotlinx.android.synthetic.main.fragment_main.*
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener {
 
@@ -53,6 +55,8 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
     // This is an array of all the permission specified in the manifest
     private val requiredPermissions = arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
+    private lateinit var executor: ExecutorService
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -63,6 +67,8 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
 
     override fun onStart() {
         super.onStart()
+
+        executor = Executors.newSingleThreadExecutor()
 
         // Create the picture directory.
         Utilities.fileDir.mkdir()
@@ -171,8 +177,9 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
         // Create configuration object for the viewfinder.
         val previewConfig = PreviewConfig.Builder().apply {
             setLensFacing(lensFacing)
-            setTargetResolution(Size(viewfinder.width, viewfinder.height))
-            setTargetAspectRatio(Rational(viewfinder.width, viewfinder.height))
+            setTargetResolution(Size(viewfinder.width, (viewfinder.width * (16.0 / 9.0)).toInt()))
+//            setTargetAspectRatio(Rational(viewfinder.width, viewfinder.height))
+//            setTargetAspectRatio(AspectRatio.RATIO_16_9)
         }.build()
 
         // Build the viewfinder
@@ -191,8 +198,9 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
         // Create configuration object for the image capture.
         val imageCaptureConfig: ImageCaptureConfig = ImageCaptureConfig.Builder().apply {
             setLensFacing(lensFacing)
-            setTargetAspectRatio(previewConfig.targetAspectRatio)
-            setCaptureMode(ImageCapture.CaptureMode.MIN_LATENCY)
+//            setTargetAspectRatioCustom(Rational(16, 9))
+            setTargetResolution(previewConfig.targetResolution)
+            setCaptureMode(ImageCapture.CaptureMode.MAX_QUALITY)
         }.build()
 
         // Build the image capture.
@@ -203,7 +211,7 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
         CameraX.bindToLifecycle(this, viewfinderPreview, imageCapture)
 
         // Build daily picture object for picture capture.
-        dailyPicture = DailyPicture(context, imageCapture, viewfinder, prev_picture)
+        dailyPicture = DailyPicture(context, imageCapture, viewfinder, prev_picture, executor)
     }
 
     /**
