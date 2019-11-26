@@ -16,9 +16,13 @@
 
 package com.stefensharkey.dayafterday
 
+import android.content.res.Resources
 import android.graphics.drawable.Drawable
+import android.os.Build
 import android.os.Environment
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
 
 class Utilities {
 
@@ -27,6 +31,9 @@ class Utilities {
         val logTag = "Day After Day"
         val fileDir = File("${Environment.getExternalStorageDirectory()}/DayAfterDay")
         val thumbnailDir = File(fileDir, "thumbnails")
+        val timelapseDir = File(fileDir, "timelapses")
+
+        lateinit var timelapseRenderId: UUID
 
         /**
          * Returns the most recent photo taken with this app.
@@ -47,10 +54,13 @@ class Utilities {
          */
         fun removeDirectories(files: Array<File>): Array<File> {
             val fileList = files.toMutableList()
+            val iterator = fileList.iterator()
 
-            for (file in fileList) {
+            while (iterator.hasNext()) {
+                val file = iterator.next()
+
                 if (file.isDirectory) {
-                    fileList.remove(file)
+                    iterator.remove()
                 }
             }
 
@@ -75,6 +85,17 @@ class Utilities {
             val newName = oldName.substring(0, oldName.length - 6) + "." + file.extension
 
             return File(fileDir, newName).absolutePath
+        }
+
+        fun getTime(): String {
+            // Gets the current locale.
+            val locale = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+                Resources.getSystem().configuration.locales.get(0)
+            else
+                Resources.getSystem().configuration.locale
+
+            // Formats the date and time as desired.
+            return SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", locale).format(Calendar.getInstance().time)
         }
     }
 }

@@ -53,22 +53,12 @@ class DailyPicture(
 ) {
 
     fun takePicture() {
-        // Gets the current locale.
-        val locale = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
-            Resources.getSystem().configuration.locales.get(0)
-        else
-            Resources.getSystem().configuration.locale
-
-        // Formats the date and time as desired..
-        val date = SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", locale).format(Calendar.getInstance().time)
-
         // Gets the lens facing descriptor.
         val lensFacing = if (MainFragment().lensFacing == CameraX.LensFacing.FRONT) "F" else "B"
 
         // Gets the desired directory and file names.
-        val fileName = "DayAfterDay-$date-$lensFacing"
-        val fileExtension = ".jpg"
-        val file = File(Utilities.fileDir, fileName + fileExtension)
+        val fileName = "DayAfterDay-${Utilities.getTime()}-$lensFacing.jpg"
+        val file = File(Utilities.fileDir, fileName)
 
         imageCapture.takePicture(file, executor,
             object: ImageCapture.OnImageSavedListener {

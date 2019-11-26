@@ -54,6 +54,8 @@ class GalleryFragment: Fragment() {
                 val arguments = Bundle()
                 arguments.putString("file_addr", file.absolutePath)
 
+                Log.d(Utilities.logTag, file.absolutePath)
+
                 fragment.arguments = arguments
                 fragmentTransaction.add(gallery_photos.id, fragment, tag).commit()
             }

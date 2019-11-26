@@ -73,6 +73,7 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
         // Create the picture directory.
         Utilities.fileDir.mkdir()
         Utilities.thumbnailDir.mkdir()
+        Utilities.timelapseDir.mkdir()
 
         // If all the permissions required are granted, show the camera; otherwise, request the permissions.
         if (allPermissionsGranted()) {

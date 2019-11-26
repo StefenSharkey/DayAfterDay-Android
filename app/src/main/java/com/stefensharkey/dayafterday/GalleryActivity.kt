@@ -17,12 +17,33 @@
 package com.stefensharkey.dayafterday
 
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 
 class GalleryActivity: AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportFragmentManager.beginTransaction().replace(android.R.id.content, GalleryFragment()).commit()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.gallery_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_timelapse -> {
+                val createTimelapseWorkRequest = OneTimeWorkRequestBuilder<TimelapseWorker>().build()
+                Utilities.timelapseRenderId = createTimelapseWorkRequest.id
+                WorkManager.getInstance(applicationContext).enqueue(createTimelapseWorkRequest)
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 }
