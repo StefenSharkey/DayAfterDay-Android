@@ -50,7 +50,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintHorizontal_chainStyle="packed" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <ImageButton
         android:id="@+id/switch_camera"
         android:src="@android:drawable/ic_menu_rotate"
         android:backgroundTint="@android:color/transparent"
@@ -63,7 +63,7 @@
         app:layout_constraintRight_toLeftOf="@id/take_picture"
         app:layout_constraintBottom_toBottomOf="parent" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <ImageButton
         android:id="@+id/open_gallery"
         android:src="@android:drawable/ic_menu_gallery"
         android:backgroundTint="@android:color/transparent"
