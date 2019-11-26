@@ -115,6 +115,7 @@ class TimelapseWorker(appContext: Context, workerParams: WorkerParameters): Work
         notificationBuilder.setContentTitle("Timelapse Rendering Progress")
             .setSmallIcon(android.R.drawable.stat_sys_download)
             .setContentIntent(notificationIntent)
+            .setShowWhen(false)
             .setOngoing(true)
             .setProgress(maxProgress, 0, false)
 
