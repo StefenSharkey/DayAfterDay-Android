@@ -20,8 +20,6 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 
 class GalleryActivity: AppCompatActivity() {
 
@@ -38,9 +36,9 @@ class GalleryActivity: AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_timelapse -> {
-                val createTimelapseWorkRequest = OneTimeWorkRequestBuilder<TimelapseWorker>().build()
-                Utilities.timelapseRenderId = createTimelapseWorkRequest.id
-                WorkManager.getInstance(applicationContext).enqueue(createTimelapseWorkRequest)
+                Thread {
+                    Timelapse.createTimelapse()
+                }.start()
                 true
             }
             else -> super.onOptionsItemSelected(item)

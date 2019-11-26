@@ -28,8 +28,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
 
+        Utilities.context = applicationContext
+        setContentView(R.layout.activity_main)
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false)
     }
 

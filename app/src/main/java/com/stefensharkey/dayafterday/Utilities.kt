@@ -16,6 +16,7 @@
 
 package com.stefensharkey.dayafterday
 
+import android.content.Context
 import android.content.res.Resources
 import android.graphics.drawable.Drawable
 import android.os.Build
@@ -32,6 +33,7 @@ class Utilities {
         val fileDir = File("${Environment.getExternalStorageDirectory()}/DayAfterDay")
         val thumbnailDir = File(fileDir, "thumbnails")
         val timelapseDir = File(fileDir, "timelapses")
+        lateinit var context: Context
 
         lateinit var timelapseRenderId: UUID
 
