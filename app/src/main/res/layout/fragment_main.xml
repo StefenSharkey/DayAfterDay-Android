@@ -52,7 +52,7 @@
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/switch_camera"
-        android:src="@android:drawable/ic_menu_help"
+        android:src="@android:drawable/ic_menu_rotate"
         android:backgroundTint="@android:color/transparent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

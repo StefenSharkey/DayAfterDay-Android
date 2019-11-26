@@ -19,7 +19,7 @@
 
     <item
         android:id="@+id/action_timelapse"
-        android:icon="@android:drawable/presence_video_online"
+        android:icon="@android:drawable/ic_menu_slideshow"
         android:iconTint="@color/black"
         android:title="@string/timelapse_title"
         app:showAsAction="always" />
