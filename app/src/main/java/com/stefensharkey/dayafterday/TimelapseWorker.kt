@@ -155,23 +155,27 @@ class TimelapseWorker(appContext: Context, workerParams: WorkerParameters): Work
     }
 
     private fun calculateTimeRemaining(numerator: Int, denominator: Int, timeElapsed: Long): String {
-        val timeRemaining = timeElapsed / 1000 * (denominator - numerator)
-        val hours = if (timeRemaining / (60*60) > 0) {
-            String.format("%02d", timeRemaining / (60 * 60)) + ":"
+        return if (timeElapsed == 0L) {
+            "--:--"
         } else {
-            ""
+            val timeRemaining = timeElapsed / 1000 * (denominator - numerator)
+            val hours = if (timeRemaining / (60 * 60) > 0) {
+                String.format("%02d", timeRemaining / (60 * 60)) + ":"
+            } else {
+                ""
+            }
+
+            val minutes = if (timeRemaining / 60 > 0) {
+                String.format("%02d", timeRemaining / 60) + ":"
+            } else {
+                "00:"
+            }
+
+            val seconds = String.format("%02d", timeRemaining % 60)
+
+            Log.d(Utilities.logTag, hours + minutes + seconds)
+
+            hours + minutes + seconds
         }
-
-        val minutes = if (timeRemaining / 60 > 0) {
-            String.format("%02d", timeRemaining / 60) + ":"
-        } else {
-            "00:"
-        }
-
-        val seconds = String.format("%02d", timeRemaining % 60)
-
-        Log.d(Utilities.logTag, hours + minutes + seconds)
-
-        return hours + minutes + seconds
     }
 }
