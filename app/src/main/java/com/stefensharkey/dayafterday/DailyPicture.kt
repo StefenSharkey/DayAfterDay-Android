@@ -16,36 +16,35 @@
 
 package com.stefensharkey.dayafterday
 
-import android.content.Context
 import android.content.Intent
-import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.hardware.Camera
-import android.icu.util.Output
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import android.view.View
 import android.view.animation.AlphaAnimation
 import android.webkit.MimeTypeMap
 import android.widget.ImageView
 import androidx.camera.core.ImageCapture
-import android.widget.Toast
 import androidx.camera.core.CameraX
+import com.stefensharkey.dayafterday.Utilities.fileDir
+import com.stefensharkey.dayafterday.Utilities.getString
+import com.stefensharkey.dayafterday.Utilities.getTime
+import com.stefensharkey.dayafterday.Utilities.logDebug
+import com.stefensharkey.dayafterday.Utilities.logError
+import com.stefensharkey.dayafterday.Utilities.thumbnailDir
+import com.stefensharkey.dayafterday.Utilities.toastLong
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.OutputStream
-import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.concurrent.ExecutorService
 import kotlin.math.floor
 
 class DailyPicture(
-    private val context: Context?,
     private val imageCapture: ImageCapture,
     private val viewfinder: View,
     private val prev_picture: ImageView,
@@ -57,8 +56,8 @@ class DailyPicture(
         val lensFacing = if (MainFragment().lensFacing == CameraX.LensFacing.FRONT) "F" else "B"
 
         // Gets the desired directory and file names.
-        val fileName = "DayAfterDay-${Utilities.getTime()}-$lensFacing.jpg"
-        val file = File(Utilities.fileDir, fileName)
+        val fileName = "DayAfterDay-${getTime()}-$lensFacing.jpg"
+        val file = File(fileDir, fileName)
 
         imageCapture.takePicture(file, executor,
             object: ImageCapture.OnImageSavedListener {
@@ -70,8 +69,8 @@ class DailyPicture(
                     flashScreen()
 
                     val msg = R.string.picture_failed
-                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
-                    Log.e(Utilities.logTag, context!!.resources!!.getString(msg))
+                    toastLong(msg)
+                    logError(getString(msg))
                     cause?.printStackTrace()
                 }
 
@@ -81,31 +80,35 @@ class DailyPicture(
                     // Implicit broadcasts will be ignored for devices running API
                     // level >= 24, so if you only target 24+ you can remove this statement
                     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                        context!!.sendBroadcast(Intent(Camera.ACTION_NEW_PICTURE, Uri.fromFile(file)))
+                        MainActivity.applicationContext()
+                            .sendBroadcast(Intent(Camera.ACTION_NEW_PICTURE, Uri.fromFile(file)))
                     }
 
                     // If the folder selected is an external media directory, this is unnecessary
                     // but otherwise other apps will not be able to access our images unless we
                     // scan them using [MediaScannerConnection]
                     val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension)
-                    MediaScannerConnection.scanFile(context, arrayOf(file.absolutePath), arrayOf(mimeType), null)
+                    MediaScannerConnection.scanFile(MainActivity.applicationContext(),
+                        arrayOf(file.absolutePath),
+                        arrayOf(mimeType),
+                        null)
 
                     MainFragment().createPreviousPicture(prev_picture)
 
                     // Save a thumbnail for the gallery.
                     saveThumbnail(file)
 
-                    Log.d(Utilities.logTag, "Photo saved: ${file.absoluteFile}")
+                    logDebug("Photo saved: ${file.absoluteFile}")
                 }
             }
         )
 
-        Log.d(Utilities.logTag, file.absolutePath)
+        logDebug(file.absolutePath)
     }
 
     fun saveThumbnail(file: File) {
         val thumbnail = getThumbnail(Drawable.createFromPath(file.absolutePath)!!).bitmap
-        val thumbnailFile = File(Utilities.thumbnailDir, "${file.nameWithoutExtension}-thumb.${file.extension}")
+        val thumbnailFile = File(thumbnailDir, "${file.nameWithoutExtension}-thumb.${file.extension}")
 
         try {
             val stream: OutputStream = FileOutputStream(thumbnailFile)
@@ -120,7 +123,7 @@ class DailyPicture(
 
     }
 
-    fun getThumbnail(originalImage: Drawable): BitmapDrawable {
+    private fun getThumbnail(originalImage: Drawable): BitmapDrawable {
         val originalBitmap = (originalImage as BitmapDrawable).bitmap
 
         var width = originalBitmap.width.toFloat()
@@ -139,7 +142,7 @@ class DailyPicture(
 
         val scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, width.toInt(), height.toInt(), false)
 
-        return BitmapDrawable(context?.resources, scaledBitmap)
+        return BitmapDrawable(MainActivity.applicationContext().resources, scaledBitmap)
     }
 
     /**

@@ -16,6 +16,7 @@
 
 package com.stefensharkey.dayafterday
 
+import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -25,10 +26,21 @@ import androidx.preference.PreferenceManager
 
 class MainActivity : AppCompatActivity() {
 
+    init {
+        instance = this
+    }
+
+    companion object {
+        private var instance: MainActivity? = null
+
+        fun applicationContext(): Context {
+            return instance!!.applicationContext
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        Utilities.context = applicationContext
         setContentView(R.layout.activity_main)
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false)
     }

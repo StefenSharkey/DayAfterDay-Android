@@ -16,24 +16,22 @@
 
 package com.stefensharkey.dayafterday
 
-import android.content.Context
 import android.content.res.Resources
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Environment
+import android.util.Log
+import android.widget.Toast
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
 object Utilities {
 
-    val logTag = "Day After Day"
+    private const val logTag = "Day After Day"
     val fileDir = File("${Environment.getExternalStorageDirectory()}/DayAfterDay")
     val thumbnailDir = File(fileDir, "thumbnails")
     val timelapseDir = File(fileDir, "timelapses")
-    lateinit var context: Context
-
-    lateinit var timelapseRenderId: UUID
 
     /**
      * Returns the most recent photo taken with this app.
@@ -96,5 +94,63 @@ object Utilities {
 
         // Formats the date and time as desired.
         return SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", locale).format(Calendar.getInstance().time)
+    }
+
+    fun getString(resId: Int): String {
+        return MainActivity.applicationContext().getString(resId)
+    }
+
+    fun getString(resId: Int, vararg args: Any): String {
+        return MainActivity.applicationContext().getString(resId, args)
+    }
+
+    fun logDebug(obj: Any): Int {
+        return Log.d(logTag, obj.toString())
+    }
+
+    fun logError(obj: Any): Int {
+        return Log.e(logTag, obj.toString())
+    }
+
+    fun logInfo(obj: Any): Int {
+        return Log.i(logTag, obj.toString())
+    }
+
+    fun logVerbose(obj: Any): Int {
+        return Log.v(logTag, obj.toString())
+    }
+
+    fun logWarning(obj: Any): Int {
+        return Log.w(logTag, obj.toString())
+    }
+
+    fun logWtf(obj: Any): Int {
+        return Log.wtf(logTag, obj.toString())
+    }
+
+    fun toastLong(resId: Int) {
+        Toast.makeText(MainActivity.applicationContext(), resId, Toast.LENGTH_LONG).show()
+    }
+
+    fun toastLong(text: String) {
+        Toast.makeText(MainActivity.applicationContext(), text, Toast.LENGTH_LONG).show()
+    }
+
+    fun toastShort(resId: Int) {
+        Toast.makeText(MainActivity.applicationContext(), resId, Toast.LENGTH_SHORT).show()
+    }
+
+    fun toastShort(text: String) {
+        Toast.makeText(MainActivity.applicationContext(), text, Toast.LENGTH_SHORT).show()
+    }
+
+    /**
+     * Warn the console and user that the feature desired is not yet implemented.
+     */
+    fun notYetImplemented(string: String) {
+        val reason = "Not yet implemented: $string"
+
+        toastLong(reason)
+        logWarning(reason)
     }
 }

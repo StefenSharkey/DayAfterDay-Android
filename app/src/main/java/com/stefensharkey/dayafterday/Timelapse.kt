@@ -24,10 +24,15 @@ import android.content.Intent
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Build
-import android.util.Log
-import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.FileProvider
+import com.stefensharkey.dayafterday.Utilities.fileDir
+import com.stefensharkey.dayafterday.Utilities.getString
+import com.stefensharkey.dayafterday.Utilities.getTime
+import com.stefensharkey.dayafterday.Utilities.logDebug
+import com.stefensharkey.dayafterday.Utilities.removeDirectories
+import com.stefensharkey.dayafterday.Utilities.timelapseDir
+import com.stefensharkey.dayafterday.Utilities.toastLong
 import org.jcodec.api.android.AndroidSequenceEncoder
 import org.jcodec.common.io.NIOUtils
 import org.jcodec.common.io.SeekableByteChannel
@@ -38,13 +43,16 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
 
     private var isRendering = false
 
-    private val CHANNEL_ID = "timelapse_progress"
+    private val channelId = "timelapse_progress"
 
-    private val notificationManager = Utilities.context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    private val notificationManager = MainActivity.applicationContext().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     private lateinit var notificationChannel: NotificationChannel
-    private val notificationBuilder = NotificationCompat.Builder(Utilities.context, "")
-    private val notificationIntent = PendingIntent.getActivity(Utilities.context, 0, Intent(Utilities.context, MainActivity::class.java), 0)
-    private val notificationImportance = NotificationManager.IMPORTANCE_DEFAULT
+    private val notificationBuilder = NotificationCompat.Builder(MainActivity.applicationContext(), "")
+    private val notificationIntent =
+        PendingIntent.getActivity(MainActivity.applicationContext(),
+            0,
+            Intent(MainActivity.applicationContext(), MainActivity::class.java),
+            0)
     private val notificationId = 1
 
     private var progress = 0.0
@@ -59,25 +67,22 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
 
             // Gets the desired directory and file names.
             val timelapseFile =
-                File(Utilities.timelapseDir, "DayAfterDay-${Utilities.getTime()}.mp4")
+                File(timelapseDir, "DayAfterDay-${getTime()}.mp4")
 
             var out: SeekableByteChannel? = null
 
             try {
                 out = NIOUtils.writableFileChannel(timelapseFile.absolutePath)
                 val encoder = AndroidSequenceEncoder(out, Rational.R(framesPerSecond, 1))
-                var files = Utilities.fileDir.listFiles()
+                var files = fileDir.listFiles()
 
                 if (files == null) {
                     // No pictures were found, so let the user know.
-                    Toast.makeText(
-                        Utilities.context,
-                        R.string.timelapse_no_pictures,
-                        Toast.LENGTH_LONG).show()
+                    toastLong(R.string.timelapse_no_pictures)
                 } else {
                     // Remove the directories from the list so that they are not included in
                     // iteration.
-                    files = Utilities.removeDirectories(files)
+                    files = removeDirectories(files)
 
                     // Start the progress notification.
                     createNotification(files.size)
@@ -88,10 +93,10 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
                         val timerStart = System.currentTimeMillis()
                         val image =
                             (Drawable.createFromPath(file.absolutePath) as BitmapDrawable).bitmap
-                        Log.d(Utilities.logTag, "Starting encoding of ${file.absolutePath}")
+                        logDebug("Starting encoding of ${file.absolutePath}")
 
                         encoder.encodeImage(image)
-                        Log.d(Utilities.logTag, "Ending encoding of ${file.absolutePath}")
+                        logDebug("Ending encoding of ${file.absolutePath}")
 
                         reportProgress(
                             counter + 1,
@@ -109,8 +114,8 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
 
                 // Show the finished notification.
                 notificationBuilder
-                    .setContentTitle(Utilities.context.getString(R.string.timelapse_finished))
-                    .setContentText(Utilities.context.getString(R.string.timelapse_tap_to_open))
+                    .setContentTitle(getString(R.string.timelapse_finished))
+                    .setContentText(getString(R.string.timelapse_tap_to_open))
                     .setSmallIcon(android.R.drawable.stat_sys_download_done)
                     .setOngoing(false)
                     .setProgress(0, 0, false)
@@ -121,7 +126,7 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
                     videoIntent.send()
                 }
 
-                Log.d(Utilities.logTag, "Notification shown.")
+                logDebug("Notification shown.")
             }
 
             isRendering = false
@@ -130,7 +135,7 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
 
     private fun createNotification(maxProgress: Int) {
         notificationBuilder
-            .setContentTitle(Utilities.context.getString(R.string.timelapse_progress))
+            .setContentTitle(getString(R.string.timelapse_progress))
             .setSmallIcon(android.R.drawable.stat_sys_download)
             .setContentIntent(notificationIntent)
             .setShowWhen(false)
@@ -140,12 +145,12 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             notificationChannel =
                 NotificationChannel(
-                    CHANNEL_ID,
-                    Utilities.context.getString(R.string.timelapse_settings),
-                    notificationImportance)
-            notificationChannel.description = Utilities.context.getString(R.string.timelapse_title)
+                    channelId,
+                    getString(R.string.timelapse_settings),
+                    NotificationManager.IMPORTANCE_DEFAULT)
+            notificationChannel.description = getString(R.string.timelapse_title)
             notificationManager.createNotificationChannel(notificationChannel)
-            notificationBuilder.setChannelId(CHANNEL_ID)
+            notificationBuilder.setChannelId(channelId)
         } else {
             notificationBuilder.priority = NotificationCompat.PRIORITY_DEFAULT
         }
@@ -155,7 +160,7 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
 
     private fun getFinishedIntent(file: File): PendingIntent {
         val uri =
-            FileProvider.getUriForFile(Utilities.context,
+            FileProvider.getUriForFile(MainActivity.applicationContext(),
                 "${BuildConfig.APPLICATION_ID}.provider",
                 file)
         val intent = Intent().apply {
@@ -164,14 +169,14 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
         }
 
-        return PendingIntent.getActivity(Utilities.context, 0, intent,0)
+        return PendingIntent.getActivity(MainActivity.applicationContext(), 0, intent,0)
     }
 
     private fun reportProgress(numerator: Int, denominator: Int, timeElapsed: Long): Double {
         val progress = numerator.toDouble() / denominator.toDouble()
 
         notificationBuilder
-            .setSubText(Utilities.context.getString(R.string.timelapse_time_remaining,
+            .setSubText(getString(R.string.timelapse_time_remaining,
                 calculateTimeRemaining(numerator, denominator, timeElapsed)))
 
         if (timeElapsed == 0L) {
@@ -182,7 +187,7 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
 
         notificationManager.notify(notificationId, notificationBuilder.build())
 
-        Log.d(Utilities.logTag, "Progress: $progress")
+        logDebug("Progress: $progress")
 
         return progress
     }
@@ -206,7 +211,7 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
 
             val seconds = String.format("%02d", timeRemaining % 60)
 
-            Log.d(Utilities.logTag, hours + minutes + seconds)
+            logDebug(hours + minutes + seconds)
 
             hours + minutes + seconds
         }

@@ -21,8 +21,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Matrix
 import android.os.Bundle
-import android.util.Log
-import android.util.Rational
 import android.util.Size
 import android.view.LayoutInflater
 import android.view.Surface
@@ -30,11 +28,17 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.SeekBar
-import android.widget.Toast
 import androidx.camera.core.*
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LifecycleOwner
+import com.stefensharkey.dayafterday.Utilities.fileDir
+import com.stefensharkey.dayafterday.Utilities.getPreviousPicture
+import com.stefensharkey.dayafterday.Utilities.removeDirectories
+import com.stefensharkey.dayafterday.Utilities.thumbnailDir
+import com.stefensharkey.dayafterday.Utilities.timelapseDir
+import com.stefensharkey.dayafterday.Utilities.toastLong
+import com.stefensharkey.dayafterday.Utilities.toastShort
 import kotlinx.android.synthetic.main.fragment_main.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -71,9 +75,9 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
         executor = Executors.newSingleThreadExecutor()
 
         // Create the picture directory.
-        Utilities.fileDir.mkdir()
-        Utilities.thumbnailDir.mkdir()
-        Utilities.timelapseDir.mkdir()
+        fileDir.mkdir()
+        thumbnailDir.mkdir()
+        timelapseDir.mkdir()
 
         // If all the permissions required are granted, show the camera; otherwise, request the permissions.
         if (allPermissionsGranted()) {
@@ -100,21 +104,21 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
         // Take Picture Floating Action Button
         take_picture.setOnClickListener { takePicture(take_picture) }
         take_picture.setOnLongClickListener {
-            Toast.makeText(context, getString(R.string.take_picture_desc), Toast.LENGTH_SHORT).show()
+            toastShort(R.string.take_picture_desc)
             true
         }
 
         // Switch Camera Floating Action Button
         switch_camera.setOnClickListener { switchCamera(switch_camera) }
         switch_camera.setOnLongClickListener {
-            Toast.makeText(context, getString(R.string.switch_camera_desc), Toast.LENGTH_SHORT).show()
+            toastShort(R.string.switch_camera_desc)
             true
         }
 
         // Open Gallery Floating Action Button
         open_gallery.setOnClickListener { openGallery(open_gallery) }
         open_gallery.setOnLongClickListener {
-            Toast.makeText(context, getString(R.string.open_gallery_desc), Toast.LENGTH_SHORT).show()
+            toastShort(R.string.open_gallery_desc)
             true
         }
     }
@@ -132,7 +136,7 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
             if (allPermissionsGranted()) {
                 viewfinder.post { startCamera() }
             } else {
-                Toast.makeText(context, R.string.permissions_failed, Toast.LENGTH_LONG).show()
+                toastLong(R.string.permissions_failed)
                 fragmentManager!!.beginTransaction().remove(this).commit()
             }
         }
@@ -150,12 +154,12 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
      */
     fun createPreviousPicture(prevPicture: ImageView) {
         // Check if file list is empty. If yes, do nothing.
-        val files = Utilities.fileDir.listFiles()
+        val files = fileDir.listFiles()
 
         if (files != null) {
-            val fileList = Utilities.removeDirectories(files.sortedArray())
+            val fileList = removeDirectories(files.sortedArray())
 
-            prevPicture.setImageDrawable(Utilities.getPreviousPicture())
+            prevPicture.setImageDrawable(getPreviousPicture())
 
             // If the last picture was taken with the front camera, flip the image horizontally to
             // match the viewfinder.
@@ -177,8 +181,6 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
         val previewConfig = PreviewConfig.Builder().apply {
             setLensFacing(lensFacing)
             setTargetResolution(Size(viewfinder.width, (viewfinder.width * (16.0 / 9.0)).toInt()))
-//            setTargetAspectRatio(Rational(viewfinder.width, viewfinder.height))
-//            setTargetAspectRatio(AspectRatio.RATIO_16_9)
         }.build()
 
         // Build the viewfinder
@@ -197,7 +199,6 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
         // Create configuration object for the image capture.
         val imageCaptureConfig: ImageCaptureConfig = ImageCaptureConfig.Builder().apply {
             setLensFacing(lensFacing)
-//            setTargetAspectRatioCustom(Rational(16, 9))
             setTargetResolution(previewConfig.targetResolution)
             setCaptureMode(ImageCapture.CaptureMode.MAX_QUALITY)
         }.build()
@@ -210,7 +211,7 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
         CameraX.bindToLifecycle(this, viewfinderPreview, imageCapture)
 
         // Build daily picture object for picture capture.
-        dailyPicture = DailyPicture(context, imageCapture, viewfinder, prev_picture, executor)
+        dailyPicture = DailyPicture(imageCapture, viewfinder, prev_picture, executor)
     }
 
     /**
@@ -243,14 +244,14 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
     /**
      * Upon the take picture button being pressed, takes a picture.
      */
-    fun takePicture(view: View) {
+    private fun takePicture(view: View) {
         dailyPicture.takePicture()
     }
 
     /**
      * Upon the switch camera button being pressed, switch the camera.
      */
-    fun switchCamera(view: View) {
+    private fun switchCamera(view: View) {
         lensFacing = if (lensFacing == CameraX.LensFacing.FRONT)
             CameraX.LensFacing.BACK
         else
@@ -263,17 +264,7 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
     /**
      * Upon the open gallery button being pressed, open the gallery.
      */
-    fun openGallery(view: View) {
+    private fun openGallery(view: View) {
         startActivity(Intent(activity, GalleryActivity::class.java))
-    }
-
-    /**
-     * Warn the console and user that the feature desired is not yet implemented.
-     */
-    fun notYetImplemented(string: String) {
-        val reason = "Not yet implemented: $string"
-
-        Toast.makeText(context, reason, Toast.LENGTH_LONG).show()
-        Log.w(Utilities.logTag, reason)
     }
 }

@@ -2,7 +2,7 @@
 
 Day After Day is an Android application that allows for users to take daily photographs of themselves and see how their physical selves have changed over time.
 
-## Compliling
+## Compiling
 
 Day After Day compiles using [Android Studio](https://developer.android.com/studio).
 

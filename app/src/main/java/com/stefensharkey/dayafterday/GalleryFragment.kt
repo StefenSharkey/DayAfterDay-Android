@@ -18,13 +18,15 @@ package com.stefensharkey.dayafterday
 
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import com.stefensharkey.dayafterday.Utilities.getFullPhoto
+import com.stefensharkey.dayafterday.Utilities.getPreviousPicture
+import com.stefensharkey.dayafterday.Utilities.logDebug
+import com.stefensharkey.dayafterday.Utilities.thumbnailDir
 import kotlinx.android.synthetic.main.fragment_gallery.*
-import java.io.File
 
 class GalleryFragment: Fragment() {
 
@@ -39,9 +41,9 @@ class GalleryFragment: Fragment() {
     override fun onStart() {
         super.onStart()
 
-        setMainPhoto(Utilities.getPreviousPicture())
+        setMainPhoto(getPreviousPicture())
 
-        val files = Utilities.thumbnailDir.listFiles()
+        val files = thumbnailDir.listFiles()
 
         // Checks if any files exist.
         if (files != null) {
@@ -54,7 +56,7 @@ class GalleryFragment: Fragment() {
                 val arguments = Bundle()
                 arguments.putString("file_addr", file.absolutePath)
 
-                Log.d(Utilities.logTag, file.absolutePath)
+                logDebug(file.absolutePath)
 
                 fragment.arguments = arguments
                 fragmentTransaction.add(gallery_photos.id, fragment, tag).commit()
@@ -66,23 +68,23 @@ class GalleryFragment: Fragment() {
      * Sets the main photo to the drawable at the given path.
      */
     fun setMainPhotoFromThumbnail(path: String) {
-        Log.d(Utilities.logTag, path)
-        Log.d(Utilities.logTag, Utilities.getFullPhoto(path))
-        setMainPhoto(Utilities.getFullPhoto(path))
+        logDebug(path)
+        logDebug(getFullPhoto(path))
+        setMainPhoto(getFullPhoto(path))
     }
 
     /**
      * Sets the main photo to the drawable at the given path.
      */
-    fun setMainPhoto(path: String?) {
+    private fun setMainPhoto(path: String?) {
         setMainPhoto(Drawable.createFromPath(path))
     }
 
     /**
      * Sets the main photo to the given drawable.
      */
-    fun setMainPhoto(drawable: Drawable?) {
+    private fun setMainPhoto(drawable: Drawable?) {
         gallery_main_photo.setImageDrawable(drawable)
-        Log.d(Utilities.logTag, "Set the main photo to $drawable.")
+        logDebug("Set the main photo to $drawable.")
     }
 }
