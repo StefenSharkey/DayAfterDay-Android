@@ -132,9 +132,7 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
             if (allPermissionsGranted()) {
                 viewfinder.post { startCamera() }
             } else {
-                Toast.makeText(context,
-                    "Permissions not granted by the user.",
-                    Toast.LENGTH_LONG).show()
+                Toast.makeText(context, R.string.permissions_failed, Toast.LENGTH_LONG).show()
                 fragmentManager!!.beginTransaction().remove(this).commit()
             }
         }

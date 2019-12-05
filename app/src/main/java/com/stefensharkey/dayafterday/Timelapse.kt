@@ -72,9 +72,8 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
                     // No pictures were found, so let the user know.
                     Toast.makeText(
                         Utilities.context,
-                        "No pictures available for timelapse.",
-                        Toast.LENGTH_LONG
-                    ).show()
+                        R.string.timelapse_no_pictures,
+                        Toast.LENGTH_LONG).show()
                 } else {
                     // Remove the directories from the list so that they are not included in
                     // iteration.
@@ -109,8 +108,9 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
                 val videoIntent = getFinishedIntent(timelapseFile)
 
                 // Show the finished notification.
-                notificationBuilder.setContentTitle("Timelapse Finished")
-                    .setContentText("Tap to open video.")
+                notificationBuilder
+                    .setContentTitle(Utilities.context.getString(R.string.timelapse_finished))
+                    .setContentText(Utilities.context.getString(R.string.timelapse_tap_to_open))
                     .setSmallIcon(android.R.drawable.stat_sys_download_done)
                     .setOngoing(false)
                     .setProgress(0, 0, false)
@@ -129,7 +129,8 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
     }
 
     private fun createNotification(maxProgress: Int) {
-        notificationBuilder.setContentTitle("Timelapse Rendering Progress")
+        notificationBuilder
+            .setContentTitle(Utilities.context.getString(R.string.timelapse_progress))
             .setSmallIcon(android.R.drawable.stat_sys_download)
             .setContentIntent(notificationIntent)
             .setShowWhen(false)
@@ -138,7 +139,10 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             notificationChannel =
-                NotificationChannel(CHANNEL_ID,"Timelapse", notificationImportance)
+                NotificationChannel(
+                    CHANNEL_ID,
+                    Utilities.context.getString(R.string.timelapse_settings),
+                    notificationImportance)
             notificationChannel.description = Utilities.context.getString(R.string.timelapse_title)
             notificationManager.createNotificationChannel(notificationChannel)
             notificationBuilder.setChannelId(CHANNEL_ID)
@@ -166,7 +170,9 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
     private fun reportProgress(numerator: Int, denominator: Int, timeElapsed: Long): Double {
         val progress = numerator.toDouble() / denominator.toDouble()
 
-        notificationBuilder.setSubText("Time Remaining: ${calculateTimeRemaining(numerator, denominator, timeElapsed)}")
+        notificationBuilder
+            .setSubText(Utilities.context.getString(R.string.timelapse_time_remaining,
+                calculateTimeRemaining(numerator, denominator, timeElapsed)))
 
         if (timeElapsed == 0L) {
             notificationBuilder.setProgress(denominator, numerator, true)

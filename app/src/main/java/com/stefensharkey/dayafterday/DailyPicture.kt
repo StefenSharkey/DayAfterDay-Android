@@ -69,9 +69,9 @@ class DailyPicture(
                 ) {
                     flashScreen()
 
-                    val msg = "Photo failed to save!"
+                    val msg = R.string.picture_failed
                     Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
-                    Log.e(Utilities.logTag, msg)
+                    Log.e(Utilities.logTag, context!!.resources!!.getString(msg))
                     cause?.printStackTrace()
                 }
 

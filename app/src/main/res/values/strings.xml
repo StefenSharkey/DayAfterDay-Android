@@ -27,6 +27,11 @@
 
     <string name="timelapse_title">Timelapse</string>
     <string name="timelapse_settings">Timelapse Settings</string>
+    <string name="timelapse_progress">Timelapse Rendering Progress</string>
+    <string name="timelapse_time_remaining">Time Remaining: %s</string>
+    <string name="timelapse_finished">Timelapse Finished</string>
+    <string name="timelapse_tap_to_open">Tap to open video.</string>
+    <string name="timelapse_no_pictures">No pictures available for timelapse.</string>
 
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
@@ -39,4 +44,7 @@
     <string name="take_picture_desc">Take Picture</string>
     <string name="switch_camera_desc">Switch Camera</string>
     <string name="open_gallery_desc">Open Gallery</string>
+
+    <string name="permissions_failed">Permissions not granted by the user.</string>
+    <string name="picture_failed">Picture failed to save!</string>
 </resources>
