@@ -25,79 +25,76 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
-class Utilities {
+object Utilities {
 
-    companion object {
+    val logTag = "Day After Day"
+    val fileDir = File("${Environment.getExternalStorageDirectory()}/DayAfterDay")
+    val thumbnailDir = File(fileDir, "thumbnails")
+    val timelapseDir = File(fileDir, "timelapses")
+    lateinit var context: Context
 
-        val logTag = "Day After Day"
-        val fileDir = File("${Environment.getExternalStorageDirectory()}/DayAfterDay")
-        val thumbnailDir = File(fileDir, "thumbnails")
-        val timelapseDir = File(fileDir, "timelapses")
-        lateinit var context: Context
+    lateinit var timelapseRenderId: UUID
 
-        lateinit var timelapseRenderId: UUID
+    /**
+     * Returns the most recent photo taken with this app.
+     */
+    fun getPreviousPicture(): Drawable? {
+        // Check if file list is empty. If yes, do nothing.
+        val files = fileDir.listFiles()
+        if (files != null) {
+            // Sort the files and return the last one.
+            return Drawable.createFromPath(removeDirectories(files.sortedArray()).last().absolutePath)!!
+        }
 
-        /**
-         * Returns the most recent photo taken with this app.
-         */
-        fun getPreviousPicture(): Drawable? {
-            // Check if file list is empty. If yes, do nothing.
-            val files = fileDir.listFiles()
-            if (files != null) {
-                // Sort the files and return the last one.
-                return Drawable.createFromPath(Utilities.removeDirectories(files.sortedArray()).last().absolutePath)!!
+        return null
+    }
+
+    /**
+     * Remove directories from the given file list.
+     */
+    fun removeDirectories(files: Array<File>): Array<File> {
+        val fileList = files.toMutableList()
+        val iterator = fileList.iterator()
+
+        while (iterator.hasNext()) {
+            val file = iterator.next()
+
+            if (file.isDirectory) {
+                iterator.remove()
             }
-
-            return null
         }
 
-        /**
-         * Remove directories from the given file list.
-         */
-        fun removeDirectories(files: Array<File>): Array<File> {
-            val fileList = files.toMutableList()
-            val iterator = fileList.iterator()
+        return fileList.toTypedArray()
+    }
 
-            while (iterator.hasNext()) {
-                val file = iterator.next()
+    fun getThumbnail(path: String): String {
+        val file = File(path)
 
-                if (file.isDirectory) {
-                    iterator.remove()
-                }
-            }
+        // The new name is created by inserting into the old name.
+        val newName = "${file.nameWithoutExtension}-thumb.${file.extension}"
+        return File(thumbnailDir, newName).absolutePath
+    }
 
-            return fileList.toTypedArray()
-        }
+    fun getFullPhoto(path: String): String {
+        val file = File(path)
 
-        fun getThumbnail(path: String): String {
-            val file = File(path)
+        val oldName = file.nameWithoutExtension
 
-            // The new name is created by inserting into the old name.
-            val newName = "${file.nameWithoutExtension}-thumb.${file.extension}"
-            return File(thumbnailDir, newName).absolutePath
-        }
+        // The new name is created by removing the length of the thumbnail suffix from the old
+        // name.
+        val newName = oldName.substring(0, oldName.length - 6) + "." + file.extension
 
-        fun getFullPhoto(path: String): String {
-            val file = File(path)
+        return File(fileDir, newName).absolutePath
+    }
 
-            val oldName = file.nameWithoutExtension
+    fun getTime(): String {
+        // Gets the current locale.
+        val locale = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+            Resources.getSystem().configuration.locales.get(0)
+        else
+            Resources.getSystem().configuration.locale
 
-            // The new name is created by removing the length of the thumbnail suffix from the old
-            // name.
-            val newName = oldName.substring(0, oldName.length - 6) + "." + file.extension
-
-            return File(fileDir, newName).absolutePath
-        }
-
-        fun getTime(): String {
-            // Gets the current locale.
-            val locale = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
-                Resources.getSystem().configuration.locales.get(0)
-            else
-                Resources.getSystem().configuration.locale
-
-            // Formats the date and time as desired.
-            return SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", locale).format(Calendar.getInstance().time)
-        }
+        // Formats the date and time as desired.
+        return SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", locale).format(Calendar.getInstance().time)
     }
 }
