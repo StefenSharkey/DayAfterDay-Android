@@ -22,7 +22,6 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import androidx.preference.PreferenceManager
-import androidx.work.WorkManager
 
 class MainActivity : AppCompatActivity() {
 
@@ -47,10 +46,5 @@ class MainActivity : AppCompatActivity() {
             }
             else -> super.onOptionsItemSelected(item)
         }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        WorkManager.getInstance(applicationContext).cancelWorkById(Utilities.timelapseRenderId)
     }
 }
