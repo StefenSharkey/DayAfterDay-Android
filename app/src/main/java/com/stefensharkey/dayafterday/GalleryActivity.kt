@@ -20,8 +20,9 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDialogFragment
 
-class GalleryActivity: AppCompatActivity() {
+class GalleryActivity: AppCompatActivity(), TimelapseDialogFragment.NoticeDialogListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,12 +37,30 @@ class GalleryActivity: AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_timelapse -> {
-                Thread {
-                    Timelapse.createTimelapse()
-                }.start()
+                val fragmentTransaction = supportFragmentManager.beginTransaction()
+                val prev = supportFragmentManager.findFragmentByTag("dialog")
+
+                if (prev != null) {
+                    fragmentTransaction.remove(prev)
+                }
+
+                fragmentTransaction.addToBackStack(null)
+                val dialogFragment = TimelapseDialogFragment()
+                dialogFragment.show(fragmentTransaction, "dialog")
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    override fun onDialogPositiveClick(dialogFragment: AppCompatDialogFragment) {
+        val timelapseDialogFragment = dialogFragment as TimelapseDialogFragment
+
+        Thread(Timelapse(timelapseDialogFragment.framesPerSecond, timelapseDialogFragment.openWhenFinished)).start()
+        dialogFragment.dismiss()
+    }
+
+    override fun onDialogNegativeClick(dialogFragment: AppCompatDialogFragment) {
+        dialogFragment.dismiss()
     }
 }

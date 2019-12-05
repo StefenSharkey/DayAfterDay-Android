@@ -24,7 +24,15 @@
     <string name="preference_author_summary">Stefen Sharkey</string>
 
     <string name="gallery_title">Gallery</string>
+
     <string name="timelapse_title">Timelapse</string>
+    <string name="timelapse_settings">Timelapse Settings</string>
+
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="frames_per_second">Frames Per Second</string>
+    <string name="open_when_finished">Open when finished</string>
 
     <!-- Content Descriptions -->
     <string name="prev_picture_desc">Previous Picture</string>

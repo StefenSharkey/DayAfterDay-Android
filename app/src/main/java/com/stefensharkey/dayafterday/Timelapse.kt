@@ -16,7 +16,6 @@
 
 package com.stefensharkey.dayafterday
 
-import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -35,7 +34,7 @@ import org.jcodec.common.io.SeekableByteChannel
 import org.jcodec.common.model.Rational
 import java.io.File
 
-object Timelapse {
+class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: Boolean): Runnable {
 
     private var isRendering = false
 
@@ -50,7 +49,11 @@ object Timelapse {
 
     private var progress = 0.0
 
-    fun createTimelapse() {
+    override fun run() {
+        createTimelapse()
+    }
+
+    private fun createTimelapse() {
         if (!isRendering) {
             isRendering = true
 
@@ -62,7 +65,7 @@ object Timelapse {
 
             try {
                 out = NIOUtils.writableFileChannel(timelapseFile.absolutePath)
-                val encoder = AndroidSequenceEncoder(out, Rational.R(10, 1))
+                val encoder = AndroidSequenceEncoder(out, Rational.R(framesPerSecond, 1))
                 var files = Utilities.fileDir.listFiles()
 
                 if (files == null) {
@@ -103,14 +106,20 @@ object Timelapse {
             } finally {
                 NIOUtils.closeQuietly(out)
 
+                val videoIntent = getFinishedIntent(timelapseFile)
+
                 // Show the finished notification.
                 notificationBuilder.setContentTitle("Timelapse Finished")
                     .setContentText("Tap to open video.")
                     .setSmallIcon(android.R.drawable.stat_sys_download_done)
                     .setOngoing(false)
                     .setProgress(0, 0, false)
-                    .setContentIntent(getFinishedIntent(timelapseFile))
+                    .setContentIntent(videoIntent)
                 notificationManager.notify(notificationId, notificationBuilder.build())
+
+                if (openWhenFinished) {
+                    videoIntent.send()
+                }
 
                 Log.d(Utilities.logTag, "Notification shown.")
             }
