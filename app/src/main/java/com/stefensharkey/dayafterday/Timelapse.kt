@@ -112,6 +112,8 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
                     .setOngoing(false)
                     .setProgress(0, 0, false)
                     .setContentIntent(videoIntent)
+                    .setSubText(null)
+                    .setAutoCancel(true)
                 notificationManager.notify(notificationId, notificationBuilder.build())
 
                 if (openWhenFinished) {
