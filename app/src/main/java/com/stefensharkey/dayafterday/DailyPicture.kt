@@ -24,17 +24,19 @@ import android.hardware.Camera
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import android.view.animation.AlphaAnimation
 import android.webkit.MimeTypeMap
 import android.widget.ImageView
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.CameraX
-import com.stefensharkey.dayafterday.Utilities.fileDir
 import com.stefensharkey.dayafterday.Utilities.getString
 import com.stefensharkey.dayafterday.Utilities.getTime
 import com.stefensharkey.dayafterday.Utilities.logDebug
 import com.stefensharkey.dayafterday.Utilities.logError
+import com.stefensharkey.dayafterday.Utilities.pictureDir
 import com.stefensharkey.dayafterday.Utilities.thumbnailDir
 import com.stefensharkey.dayafterday.Utilities.toastLong
 import java.io.File
@@ -57,7 +59,7 @@ class DailyPicture(
 
         // Gets the desired directory and file names.
         val fileName = "DayAfterDay-${getTime()}-$lensFacing.jpg"
-        val file = File(fileDir, fileName)
+        val file = File(pictureDir, fileName)
 
         imageCapture.takePicture(file, executor,
             object: ImageCapture.OnImageSavedListener {
@@ -93,7 +95,9 @@ class DailyPicture(
                         arrayOf(mimeType),
                         null)
 
-                    MainFragment().createPreviousPicture(prev_picture)
+                    Handler(Looper.getMainLooper()).post {
+                        MainFragment().createPreviousPicture(prev_picture)
+                    }
 
                     // Save a thumbnail for the gallery.
                     saveThumbnail(file)

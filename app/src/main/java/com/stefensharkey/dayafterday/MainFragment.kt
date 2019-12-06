@@ -34,9 +34,9 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.LifecycleOwner
 import com.stefensharkey.dayafterday.Utilities.fileDir
 import com.stefensharkey.dayafterday.Utilities.getPreviousPicture
+import com.stefensharkey.dayafterday.Utilities.pictureDir
 import com.stefensharkey.dayafterday.Utilities.removeDirectories
 import com.stefensharkey.dayafterday.Utilities.thumbnailDir
-import com.stefensharkey.dayafterday.Utilities.timelapseDir
 import com.stefensharkey.dayafterday.Utilities.toastLong
 import com.stefensharkey.dayafterday.Utilities.toastShort
 import kotlinx.android.synthetic.main.fragment_main.*
@@ -74,10 +74,10 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
 
         executor = Executors.newSingleThreadExecutor()
 
-        // Create the picture directory.
+        // Create the necessary directories.
         fileDir.mkdir()
+        pictureDir.mkdir()
         thumbnailDir.mkdir()
-        timelapseDir.mkdir()
 
         // If all the permissions required are granted, show the camera; otherwise, request the permissions.
         if (allPermissionsGranted()) {
@@ -152,19 +152,20 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
     /**
      * Create a shadow of the previous picture controlled by the previous picture SeekBar.
      */
-    fun createPreviousPicture(prevPicture: ImageView) {
+    fun createPreviousPicture(prevPictureView: ImageView) {
+        val prevPicture = getPreviousPicture()
+
         // Check if file list is empty. If yes, do nothing.
-        val files = fileDir.listFiles()
+        if (prevPicture != null) {
+            val files = removeDirectories(pictureDir.listFiles()!!).sortedArray()
 
-        if (files != null) {
-            val fileList = removeDirectories(files.sortedArray())
-
-            prevPicture.setImageDrawable(getPreviousPicture())
+            prevPictureView.setImageDrawable(getPreviousPicture())
 
             // If the last picture was taken with the front camera, flip the image horizontally to
             // match the viewfinder.
-            if (fileList.last().nameWithoutExtension.last()== 'F')
-                prevPicture.scaleX = -1.0F
+            if (files.last().nameWithoutExtension.last() == 'F') {
+                prevPictureView.scaleX = -1.0F
+            }
         }
     }
 

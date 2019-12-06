@@ -26,13 +26,12 @@ import android.graphics.drawable.Drawable
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.content.FileProvider
-import com.stefensharkey.dayafterday.Utilities.fileDir
 import com.stefensharkey.dayafterday.Utilities.getString
 import com.stefensharkey.dayafterday.Utilities.getTime
 import com.stefensharkey.dayafterday.Utilities.logDebug
+import com.stefensharkey.dayafterday.Utilities.pictureDir
 import com.stefensharkey.dayafterday.Utilities.removeDirectories
 import com.stefensharkey.dayafterday.Utilities.timelapseDir
-import com.stefensharkey.dayafterday.Utilities.toastLong
 import org.jcodec.api.android.AndroidSequenceEncoder
 import org.jcodec.common.io.NIOUtils
 import org.jcodec.common.io.SeekableByteChannel
@@ -64,6 +63,7 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
     private fun createTimelapse() {
         if (!isRendering) {
             isRendering = true
+            timelapseDir.mkdir()
 
             // Gets the desired directory and file names.
             val timelapseFile =
@@ -71,39 +71,31 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
 
             var out: SeekableByteChannel? = null
 
+            val files = removeDirectories(pictureDir.listFiles()!!)
+
             try {
                 out = NIOUtils.writableFileChannel(timelapseFile.absolutePath)
                 val encoder = AndroidSequenceEncoder(out, Rational.R(framesPerSecond, 1))
-                var files = fileDir.listFiles()
 
-                if (files == null) {
-                    // No pictures were found, so let the user know.
-                    toastLong(R.string.timelapse_no_pictures)
-                } else {
-                    // Remove the directories from the list so that they are not included in
-                    // iteration.
-                    files = removeDirectories(files)
+                // Start the progress notification.
+                createNotification(files.size)
+                progress = reportProgress(0, files.size, 0)
 
-                    // Start the progress notification.
-                    createNotification(files.size)
-                    progress = reportProgress(0, files.size, 0)
+                // For every image, encode it and update the progress notification.
+                for ((counter, file) in files.sortedDescending().withIndex()) {
+                    val timerStart = System.currentTimeMillis()
+                    val image =
+                        (Drawable.createFromPath(file.absolutePath) as BitmapDrawable).bitmap
+                    logDebug("Starting encoding of ${file.absolutePath}")
 
-                    // For every image, encode it and update the progress notification.
-                    for ((counter, file) in files.sortedDescending().withIndex()) {
-                        val timerStart = System.currentTimeMillis()
-                        val image =
-                            (Drawable.createFromPath(file.absolutePath) as BitmapDrawable).bitmap
-                        logDebug("Starting encoding of ${file.absolutePath}")
+                    encoder.encodeImage(image)
+                    logDebug("Ending encoding of ${file.absolutePath}")
 
-                        encoder.encodeImage(image)
-                        logDebug("Ending encoding of ${file.absolutePath}")
-
-                        reportProgress(
-                            counter + 1,
-                            files.size,
-                            System.currentTimeMillis() - timerStart
-                        )
-                    }
+                    reportProgress(
+                        counter + 1,
+                        files.size,
+                        System.currentTimeMillis() - timerStart
+                    )
                 }
 
                 encoder.finish()

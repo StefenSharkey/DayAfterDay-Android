@@ -21,6 +21,8 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDialogFragment
+import com.stefensharkey.dayafterday.Utilities.removeDirectories
+import com.stefensharkey.dayafterday.Utilities.toastLong
 
 class GalleryActivity: AppCompatActivity(), TimelapseDialogFragment.NoticeDialogListener {
 
@@ -37,16 +39,20 @@ class GalleryActivity: AppCompatActivity(), TimelapseDialogFragment.NoticeDialog
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_timelapse -> {
-                val fragmentTransaction = supportFragmentManager.beginTransaction()
-                val prev = supportFragmentManager.findFragmentByTag("dialog")
+                if (filesDir != null && removeDirectories(filesDir.listFiles()!!).isNotEmpty()) {
+                    val fragmentTransaction = supportFragmentManager.beginTransaction()
+                    val prev = supportFragmentManager.findFragmentByTag("dialog")
 
-                if (prev != null) {
-                    fragmentTransaction.remove(prev)
+                    if (prev != null) {
+                        fragmentTransaction.remove(prev)
+                    }
+
+                    fragmentTransaction.addToBackStack(null)
+                    val dialogFragment = TimelapseDialogFragment()
+                    dialogFragment.show(fragmentTransaction, "dialog")
+                } else {
+                    toastLong(R.string.timelapse_no_pictures)
                 }
-
-                fragmentTransaction.addToBackStack(null)
-                val dialogFragment = TimelapseDialogFragment()
-                dialogFragment.show(fragmentTransaction, "dialog")
                 true
             }
             else -> super.onOptionsItemSelected(item)

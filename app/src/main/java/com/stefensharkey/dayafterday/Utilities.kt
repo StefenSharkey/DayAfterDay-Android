@@ -30,6 +30,7 @@ object Utilities {
 
     private const val logTag = "Day After Day"
     val fileDir = File("${Environment.getExternalStorageDirectory()}/DayAfterDay")
+    val pictureDir = File(fileDir, "pictures")
     val thumbnailDir = File(fileDir, "thumbnails")
     val timelapseDir = File(fileDir, "timelapses")
 
@@ -38,10 +39,15 @@ object Utilities {
      */
     fun getPreviousPicture(): Drawable? {
         // Check if file list is empty. If yes, do nothing.
-        val files = fileDir.listFiles()
+        var files = pictureDir.listFiles()
+
         if (files != null) {
-            // Sort the files and return the last one.
-            return Drawable.createFromPath(removeDirectories(files.sortedArray()).last().absolutePath)!!
+            files = removeDirectories(files)
+
+            if (files.isNotEmpty()) {
+                // Sort the files and return the last one.
+                return Drawable.createFromPath(removeDirectories(files.sortedArray()).last().absolutePath)!!
+            }
         }
 
         return null
@@ -82,7 +88,7 @@ object Utilities {
         // name.
         val newName = oldName.substring(0, oldName.length - 6) + "." + file.extension
 
-        return File(fileDir, newName).absolutePath
+        return File(pictureDir, newName).absolutePath
     }
 
     fun getTime(): String {
