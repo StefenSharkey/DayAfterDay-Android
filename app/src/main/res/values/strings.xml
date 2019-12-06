@@ -15,13 +15,16 @@
 -->
 <resources>
     <string name="app_name">Day After Day</string>
+    <string name="author_name" translatable="false">Stefen Sharkey</string>
+    <string name="author_email" translatable="false">stefensharkey@gmail.com</string>
 
     <!-- Setting Titles and Descriptions -->
     <string name="settings_title">Settings</string>
+    <string name="preference_send_feedback">Send Feedback</string>
     <string name="preference_about_title">About</string>
     <string name="preference_version_title">Build Version</string>
     <string name="preference_author_title">Author</string>
-    <string name="preference_author_summary">Stefen Sharkey</string>
+
 
     <string name="gallery_title">Gallery</string>
 

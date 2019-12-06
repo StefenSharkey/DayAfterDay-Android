@@ -30,6 +30,19 @@ class SettingsFragment: PreferenceFragmentCompat() {
 
     override fun onPreferenceTreeClick(preference: Preference?): Boolean {
         return when (preference!!.key) {
+            "preference_send_feedback" -> {
+                val intent = Intent(Intent.ACTION_SENDTO).apply {
+                    data = Uri.parse("mailto:")
+                    putExtra(Intent.EXTRA_EMAIL, arrayOf(getString(R.string.author_email)))
+                    putExtra(Intent.EXTRA_SUBJECT, "${getString(R.string.app_name)} ${BuildConfig.VERSION_NAME} Feedback")
+                }
+
+                if (intent.resolveActivity(activity!!.packageManager) != null) {
+                    startActivity(intent)
+                }
+
+                true
+            }
             "preference_about" -> {
                 // TODO: Allow for reverse traversal of preference screens.
                 setPreferencesFromResource(R.xml.preferences_about, preferenceScreen.key)

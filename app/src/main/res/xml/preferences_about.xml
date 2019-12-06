@@ -24,6 +24,6 @@
         android:id="@+id/preference_author"
         android:key="preference_author"
         android:title="@string/preference_author_title"
-        android:summary="@string/preference_author_summary" />
+        android:summary="@string/author_name" />
 
 </PreferenceScreen>

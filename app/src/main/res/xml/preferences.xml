@@ -16,6 +16,11 @@
 -->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <Preference
+        android:id="@+id/preference_send_feedback"
+        android:key="preference_send_feedback"
+        android:title="@string/preference_send_feedback" />
+
+    <Preference
         android:id="@+id/preference_about"
         android:key="preference_about"
         android:title="@string/preference_about_title" />
