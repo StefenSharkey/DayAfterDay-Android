@@ -34,7 +34,6 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.CameraX
 import com.stefensharkey.dayafterday.Utilities.getString
 import com.stefensharkey.dayafterday.Utilities.getTime
-import com.stefensharkey.dayafterday.Utilities.logDebug
 import com.stefensharkey.dayafterday.Utilities.logError
 import com.stefensharkey.dayafterday.Utilities.pictureDir
 import com.stefensharkey.dayafterday.Utilities.thumbnailDir
@@ -101,13 +100,9 @@ class DailyPicture(
 
                     // Save a thumbnail for the gallery.
                     saveThumbnail(file)
-
-                    logDebug("Photo saved: ${file.absoluteFile}")
                 }
             }
         )
-
-        logDebug(file.absolutePath)
     }
 
     fun saveThumbnail(file: File) {

@@ -68,8 +68,6 @@ class GalleryFragment: Fragment() {
      * Sets the main photo to the drawable at the given path.
      */
     fun setMainPhotoFromThumbnail(path: String) {
-        logDebug(path)
-        logDebug(getFullPhoto(path))
         setMainPhoto(getFullPhoto(path))
     }
 
@@ -85,7 +83,6 @@ class GalleryFragment: Fragment() {
      */
     private fun setMainPhoto(drawable: Drawable?) {
         gallery_main_photo.setImageDrawable(drawable)
-        logDebug("Set the main photo to $drawable.")
     }
 
     private fun getFullPhoto(path: String): String {
