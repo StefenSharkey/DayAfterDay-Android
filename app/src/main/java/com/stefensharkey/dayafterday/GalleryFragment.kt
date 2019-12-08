@@ -22,11 +22,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.stefensharkey.dayafterday.Utilities.getFullPhoto
 import com.stefensharkey.dayafterday.Utilities.getPreviousPicture
 import com.stefensharkey.dayafterday.Utilities.logDebug
 import com.stefensharkey.dayafterday.Utilities.thumbnailDir
 import kotlinx.android.synthetic.main.fragment_gallery.*
+import java.io.File
 
 class GalleryFragment: Fragment() {
 
@@ -86,5 +86,17 @@ class GalleryFragment: Fragment() {
     private fun setMainPhoto(drawable: Drawable?) {
         gallery_main_photo.setImageDrawable(drawable)
         logDebug("Set the main photo to $drawable.")
+    }
+
+    private fun getFullPhoto(path: String): String {
+        val file = File(path)
+
+        val oldName = file.nameWithoutExtension
+
+        // The new name is created by removing the length of the thumbnail suffix from the old
+        // name.
+        val newName = oldName.substring(0, oldName.length - 6) + "." + file.extension
+
+        return File(Utilities.pictureDir, newName).absolutePath
     }
 }
