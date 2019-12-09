@@ -167,8 +167,9 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
         val progress = numerator.toDouble() / denominator.toDouble()
 
         notificationBuilder
-            .setSubText(getString(R.string.timelapse_time_remaining,
-                calculateTimeRemaining(numerator, denominator, timeElapsed)))
+            .setSubText("Time Remaining: ${calculateTimeRemaining(numerator, denominator, timeElapsed)}")
+//            .setSubText(getString(R.string.timelapse_time_remaining,
+//                calculateTimeRemaining(numerator, denominator, timeElapsed)))
 
         if (timeElapsed == 0L) {
             notificationBuilder.setProgress(denominator, numerator, true)
