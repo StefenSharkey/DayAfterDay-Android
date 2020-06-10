@@ -28,7 +28,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.FileProvider
 import com.stefensharkey.dayafterday.Utilities.getString
 import com.stefensharkey.dayafterday.Utilities.getTime
-import com.stefensharkey.dayafterday.Utilities.logDebug
+import com.stefensharkey.dayafterday.Utilities.logVerbose
 import com.stefensharkey.dayafterday.Utilities.pictureDir
 import com.stefensharkey.dayafterday.Utilities.removeDirectories
 import com.stefensharkey.dayafterday.Utilities.timelapseDir
@@ -71,8 +71,7 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
             timelapseDir.mkdir()
 
             // Gets the desired directory and file names.
-            val timelapseFile =
-                File(timelapseDir, "DayAfterDay-${getTime()}.mp4")
+            val timelapseFile = File(timelapseDir, "DayAfterDay-${getTime()}.mp4")
 
             var out: SeekableByteChannel? = null
 
@@ -91,10 +90,10 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
                     val timerStart = System.currentTimeMillis()
                     val image =
                         (Drawable.createFromPath(file.absolutePath) as BitmapDrawable).bitmap
-                    logDebug("Starting encoding of ${file.absolutePath}")
+                    logVerbose("Starting encoding of ${file.absolutePath}")
 
                     encoder.encodeImage(image)
-                    logDebug("Ending encoding of ${file.absolutePath}")
+                    logVerbose("Ending encoding of ${file.absolutePath}")
 
                     reportProgress(
                         counter + 1,
@@ -124,8 +123,6 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
                 if (openWhenFinished) {
                     videoIntent.send()
                 }
-
-                logDebug("Notification shown.")
             }
 
             isRendering = false
@@ -189,7 +186,7 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
 
         notificationManager.notify(notificationId, notificationBuilder.build())
 
-        logDebug("Progress: $progress")
+        logVerbose("Progress: $progress")
 
         return progress
     }

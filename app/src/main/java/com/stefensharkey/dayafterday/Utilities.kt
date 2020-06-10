@@ -80,18 +80,6 @@ object Utilities {
         return File(thumbnailDir, newName).absolutePath
     }
 
-    fun getFullPhoto(path: String): String {
-        val file = File(path)
-
-        val oldName = file.nameWithoutExtension
-
-        // The new name is created by removing the length of the thumbnail suffix from the old
-        // name.
-        val newName = oldName.substring(0, oldName.length - 6) + "." + file.extension
-
-        return File(pictureDir, newName).absolutePath
-    }
-
     fun getTime(): String {
         // Gets the current locale.
         val locale = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
