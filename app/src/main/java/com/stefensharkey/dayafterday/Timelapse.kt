@@ -45,14 +45,18 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
 
     private val channelId = "timelapse_progress"
 
-    private val notificationManager = MainActivity.applicationContext().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    private val notificationManager = MainActivity.applicationContext()
+        .getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     private lateinit var notificationChannel: NotificationChannel
-    private val notificationBuilder = NotificationCompat.Builder(MainActivity.applicationContext(), "")
+    private val notificationBuilder =
+        NotificationCompat.Builder(MainActivity.applicationContext(), "")
     private val notificationIntent =
-        PendingIntent.getActivity(MainActivity.applicationContext(),
+        PendingIntent.getActivity(
+            MainActivity.applicationContext(),
             0,
             Intent(MainActivity.applicationContext(), MainActivity::class.java),
-            0)
+            0
+        )
     private val notificationId = 1
 
     private var progress = 0.0
@@ -142,7 +146,8 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
                 NotificationChannel(
                     channelId,
                     getString(R.string.timelapse_settings),
-                    NotificationManager.IMPORTANCE_DEFAULT)
+                    NotificationManager.IMPORTANCE_DEFAULT
+                )
             notificationChannel.description = getString(R.string.timelapse_title)
             notificationManager.createNotificationChannel(notificationChannel)
             notificationBuilder.setChannelId(channelId)
@@ -155,16 +160,18 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
 
     private fun getFinishedIntent(file: File): PendingIntent {
         val uri =
-            FileProvider.getUriForFile(MainActivity.applicationContext(),
+            FileProvider.getUriForFile(
+                MainActivity.applicationContext(),
                 "${BuildConfig.APPLICATION_ID}.provider",
-                file)
+                file
+            )
         val intent = Intent().apply {
             action = Intent.ACTION_VIEW
-            setDataAndType(uri , "video/*")
+            setDataAndType(uri, "video/*")
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
         }
 
-        return PendingIntent.getActivity(MainActivity.applicationContext(), 0, intent,0)
+        return PendingIntent.getActivity(MainActivity.applicationContext(), 0, intent, 0)
     }
 
     private fun reportProgress(numerator: Int, denominator: Int, timeElapsed: Long): Double {
@@ -195,20 +202,20 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
         return if (timeElapsed == 0L) {
             " --:--"
         } else {
-            val timeRemaining = timeElapsed / 1000 * (denominator - numerator)
-            val hours = if (timeRemaining / (60 * 60) > 0) {
+            val timeRemaining: Long = timeElapsed / 1000 * (denominator - numerator)
+            val hours: String = if (timeRemaining / (60 * 60) > 0) {
                 String.format("%02d", timeRemaining / (60 * 60)) + ":"
             } else {
                 ""
             }
 
-            val minutes = if (timeRemaining / 60 > 0) {
+            val minutes: String = if (timeRemaining / 60 > 0) {
                 String.format("%02d", timeRemaining / 60) + ":"
             } else {
                 "00:"
             }
 
-            val seconds = String.format("%02d", timeRemaining % 60)
+            val seconds: String = String.format("%02d", timeRemaining % 60)
 
             " $hours$minutes$seconds"
         }

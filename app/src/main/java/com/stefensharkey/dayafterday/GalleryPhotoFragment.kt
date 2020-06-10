@@ -25,7 +25,7 @@ import androidx.fragment.app.Fragment
 import com.stefensharkey.dayafterday.Utilities.logDebug
 import kotlinx.android.synthetic.main.fragment_photo.*
 
-class GalleryPhotoFragment: Fragment() {
+class GalleryPhotoFragment : Fragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater,

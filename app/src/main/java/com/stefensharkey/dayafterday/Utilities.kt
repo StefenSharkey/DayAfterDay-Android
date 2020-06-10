@@ -25,15 +25,15 @@ import android.widget.Toast
 import java.io.File
 import java.lang.Exception
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
 
 object Utilities {
 
     private const val logTag = "Day After Day"
-    val fileDir = File("${Environment.getExternalStorageDirectory()}/DayAfterDay")
-    val pictureDir = File(fileDir, "pictures")
-    val thumbnailDir = File(fileDir, "thumbnails")
-    val timelapseDir = File(fileDir, "timelapses")
+    val fileDir: File = File("${Environment.getExternalStorageDirectory()}/DayAfterDay")
+    val pictureDir: File = File(fileDir, "pictures")
+    val thumbnailDir: File = File(fileDir, "thumbnails")
+    val timelapseDir: File = File(fileDir, "timelapses")
 
     /**
      * Returns the most recent photo taken with this app.

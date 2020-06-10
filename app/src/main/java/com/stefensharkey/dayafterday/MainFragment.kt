@@ -35,7 +35,14 @@ import android.view.animation.AlphaAnimation
 import android.webkit.MimeTypeMap
 import android.widget.ImageView
 import android.widget.SeekBar
-import androidx.camera.core.*
+import androidx.camera.core.AspectRatio
+import androidx.camera.core.Camera
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.CameraX
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.core.net.toFile
 import androidx.fragment.app.Fragment
@@ -58,7 +65,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.math.floor
 
-class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener {
+class MainFragment : Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener {
 
     private var camera: Camera? = null
     private var preview: Preview? = null
@@ -72,7 +79,8 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
     private val requestCodePermissions = 10
 
     // This is an array of all the permission specified in the manifest
-    private val requiredPermissions = arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    private val requiredPermissions =
+        arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
     private lateinit var executor: ExecutorService
 
@@ -184,9 +192,9 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
         prev_picture.alpha = progress.toFloat() / 100.0F
     }
 
-    override fun onStartTrackingTouch(seekBar: SeekBar?) { }
+    override fun onStartTrackingTouch(seekBar: SeekBar?) {}
 
-    override fun onStopTrackingTouch(seekBar: SeekBar?) { }
+    override fun onStopTrackingTouch(seekBar: SeekBar?) {}
 
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())

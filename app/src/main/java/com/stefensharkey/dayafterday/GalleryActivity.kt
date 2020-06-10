@@ -24,11 +24,12 @@ import androidx.appcompat.app.AppCompatDialogFragment
 import com.stefensharkey.dayafterday.Utilities.removeDirectories
 import com.stefensharkey.dayafterday.Utilities.toastLong
 
-class GalleryActivity: AppCompatActivity(), TimelapseDialogFragment.NoticeDialogListener {
+class GalleryActivity : AppCompatActivity(), TimelapseDialogFragment.NoticeDialogListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        supportFragmentManager.beginTransaction().replace(android.R.id.content, GalleryFragment()).commit()
+        supportFragmentManager.beginTransaction().replace(android.R.id.content, GalleryFragment())
+            .commit()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -62,7 +63,12 @@ class GalleryActivity: AppCompatActivity(), TimelapseDialogFragment.NoticeDialog
     override fun onDialogPositiveClick(dialogFragment: AppCompatDialogFragment) {
         val timelapseDialogFragment = dialogFragment as TimelapseDialogFragment
 
-        Thread(Timelapse(timelapseDialogFragment.framesPerSecond, timelapseDialogFragment.openWhenFinished)).start()
+        Thread(
+            Timelapse(
+                timelapseDialogFragment.framesPerSecond,
+                timelapseDialogFragment.openWhenFinished
+            )
+        ).start()
         dialogFragment.dismiss()
     }
 

@@ -17,8 +17,8 @@ class TimelapseDialogFragment : AppCompatDialogFragment() {
 
     private lateinit var customView: View
 
-    var framesPerSecond = 10
-    var openWhenFinished = false
+    var framesPerSecond: Int = 10
+    var openWhenFinished: Boolean = false
 
     interface NoticeDialogListener {
         fun onDialogPositiveClick(dialogFragment: AppCompatDialogFragment)
@@ -49,7 +49,7 @@ class TimelapseDialogFragment : AppCompatDialogFragment() {
     override fun onResume() {
         super.onResume()
 
-        val displayedValues = (IntArray(100) {i -> i + 1}).map(Int::toString).toTypedArray()
+        val displayedValues = (IntArray(100) { i -> i + 1 }).map(Int::toString).toTypedArray()
 
         timelapse_frames_per_second.minValue = 1
         timelapse_frames_per_second.maxValue = displayedValues.size - 1
