@@ -64,12 +64,10 @@ class GalleryActivity : AppCompatActivity(), TimelapseDialogFragment.NoticeDialo
     override fun onDialogPositiveClick(dialogFragment: AppCompatDialogFragment) {
         val timelapseDialogFragment = dialogFragment as TimelapseDialogFragment
 
-        Thread(
-            Timelapse(
-                timelapseDialogFragment.framesPerSecond,
-                timelapseDialogFragment.openWhenFinished
-            )
-        ).start()
+        Timelapse.createTimelapse(
+            timelapseDialogFragment.framesPerSecond,
+            timelapseDialogFragment.openWhenFinished
+        )
         dialogFragment.dismiss()
     }
 

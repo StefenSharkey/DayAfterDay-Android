@@ -26,6 +26,7 @@ import java.io.File
 import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.concurrent.atomic.AtomicInteger
 
 object Utilities {
 
@@ -34,6 +35,8 @@ object Utilities {
     val pictureDir: File = File(fileDir, "pictures")
     val thumbnailDir: File = File(fileDir, "thumbnails")
     val timelapseDir: File = File(fileDir, "timelapses")
+
+    private val notificationId = AtomicInteger(0)
 
     /**
      * Returns the most recent photo taken with this app.
@@ -70,6 +73,10 @@ object Utilities {
         }
 
         return fileList.toTypedArray()
+    }
+
+    fun getNotificationId(): Int {
+        return notificationId.incrementAndGet()
     }
 
     fun getThumbnail(path: String): String {
