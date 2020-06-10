@@ -37,7 +37,7 @@ class SettingsFragment: PreferenceFragmentCompat() {
                     putExtra(Intent.EXTRA_SUBJECT, "${getString(R.string.app_name)} ${BuildConfig.VERSION_NAME} Feedback")
                 }
 
-                if (intent.resolveActivity(activity!!.packageManager) != null) {
+                if (intent.resolveActivity(requireActivity().packageManager) != null) {
                     startActivity(intent)
                 }
 

@@ -40,7 +40,10 @@ class GalleryPhotoFragment: Fragment() {
 
         gallery_photo_layout.setOnClickListener {
             logDebug("onClick(): ${arguments?.getString("file_addr")}")
-            (parentFragment as GalleryFragment).setMainPhotoFromThumbnail(arguments?.getString("file_addr")!!)
+            (parentFragment as GalleryFragment).setMainPhotoFromThumbnail(
+                arguments?.getString("file_addr")
+                    ?: return@setOnClickListener
+            )
         }
 
         gallery_photo.setImageDrawable(Drawable.createFromPath(arguments?.getString("file_addr")))

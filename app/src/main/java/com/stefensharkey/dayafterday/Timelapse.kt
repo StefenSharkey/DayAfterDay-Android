@@ -38,7 +38,8 @@ import org.jcodec.common.io.SeekableByteChannel
 import org.jcodec.common.model.Rational
 import java.io.File
 
-class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: Boolean): Runnable {
+class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: Boolean) :
+    Runnable {
 
     private var isRendering = false
 
@@ -71,7 +72,7 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
 
             var out: SeekableByteChannel? = null
 
-            val files = removeDirectories(pictureDir.listFiles()!!)
+            val files = removeDirectories(pictureDir.listFiles() ?: return)
 
             try {
                 out = NIOUtils.writableFileChannel(timelapseFile.absolutePath)

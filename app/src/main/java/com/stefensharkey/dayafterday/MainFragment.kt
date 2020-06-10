@@ -19,37 +19,52 @@ package com.stefensharkey.dayafterday
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Matrix
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
+import android.media.MediaScannerConnection
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
-import android.util.Size
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
-import android.view.Surface
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AlphaAnimation
+import android.webkit.MimeTypeMap
 import android.widget.ImageView
 import android.widget.SeekBar
 import androidx.camera.core.*
 import androidx.core.content.ContextCompat
+import androidx.core.net.toFile
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LifecycleOwner
 import com.stefensharkey.dayafterday.Utilities.fileDir
 import com.stefensharkey.dayafterday.Utilities.getPreviousPicture
+import com.stefensharkey.dayafterday.Utilities.logDebug
+import com.stefensharkey.dayafterday.Utilities.logError
 import com.stefensharkey.dayafterday.Utilities.pictureDir
-import com.stefensharkey.dayafterday.Utilities.removeDirectories
 import com.stefensharkey.dayafterday.Utilities.thumbnailDir
 import com.stefensharkey.dayafterday.Utilities.toastLong
 import com.stefensharkey.dayafterday.Utilities.toastShort
 import kotlinx.android.synthetic.main.fragment_main.*
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.OutputStream
+import java.lang.Exception
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.math.floor
 
 class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener {
 
-    private lateinit var viewfinderPreview: Preview
-    private lateinit var dailyPicture: DailyPicture
-    private lateinit var imageCapture: ImageCapture
+    private var camera: Camera? = null
+    private var preview: Preview? = null
+    private var imageCapture: ImageCapture? = null
 
-    var lensFacing = CameraX.LensFacing.FRONT
+    private var lensFacing: Int = CameraSelector.LENS_FACING_FRONT
 
     // This is an arbitrary number we are using to keep tab of the permission
     // request. Where an app has multiple context for requesting permission,
@@ -93,33 +108,34 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
     }
 
     private fun createListeners() {
-        // Transform the viewfinder as necessary upon every layout change.
-        viewfinder.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
-            updateTransform()
-        }
-
         // Previous Picture SeekBar
         prev_picture_slider.setOnSeekBarChangeListener(this)
 
         // Take Picture Floating Action Button
-        take_picture.setOnClickListener { takePicture(take_picture) }
-        take_picture.setOnLongClickListener {
-            toastShort(R.string.take_picture_desc)
-            true
+        take_picture.apply {
+            setOnClickListener { takePicture() }
+            setOnLongClickListener {
+                toastShort(R.string.take_picture_desc)
+                true
+            }
         }
 
         // Switch Camera Floating Action Button
-        switch_camera.setOnClickListener { switchCamera(switch_camera) }
-        switch_camera.setOnLongClickListener {
-            toastShort(R.string.switch_camera_desc)
-            true
+        switch_camera.apply {
+            setOnClickListener { switchCamera() }
+            setOnLongClickListener {
+                toastShort(R.string.switch_camera_desc)
+                true
+            }
         }
 
         // Open Gallery Floating Action Button
-        open_gallery.setOnClickListener { openGallery(open_gallery) }
-        open_gallery.setOnLongClickListener {
-            toastShort(R.string.open_gallery_desc)
-            true
+        open_gallery.apply {
+            setOnClickListener { openGallery() }
+            setOnLongClickListener {
+                toastShort(R.string.open_gallery_desc)
+                true
+            }
         }
     }
 
@@ -137,7 +153,7 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
                 viewfinder.post { startCamera() }
             } else {
                 toastLong(R.string.permissions_failed)
-                fragmentManager!!.beginTransaction().remove(this).commit()
+                parentFragmentManager.beginTransaction().remove(this).commit()
             }
         }
     }
@@ -146,7 +162,10 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
      * Check if all permission specified in the manifest have been granted
      */
     private fun allPermissionsGranted() = requiredPermissions.all {
-        ContextCompat.checkSelfPermission(context!!, it) == PackageManager.PERMISSION_GRANTED
+        ContextCompat.checkSelfPermission(
+            requireContext(),
+            it
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
     /**
@@ -157,15 +176,7 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
 
         // Check if file list is empty. If yes, do nothing.
         if (prevPicture != null) {
-            val files = removeDirectories(pictureDir.listFiles()!!).sortedArray()
-
             prevPictureView.setImageDrawable(getPreviousPicture())
-
-            // If the last picture was taken with the front camera, flip the image horizontally to
-            // match the viewfinder.
-            if (files.last().nameWithoutExtension.last() == 'F') {
-                prevPictureView.scaleX = -1.0F
-            }
         }
     }
 
@@ -178,41 +189,51 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
     override fun onStopTrackingTouch(seekBar: SeekBar?) { }
 
     private fun startCamera() {
-        // Create configuration object for the viewfinder.
-        val previewConfig = PreviewConfig.Builder().apply {
-            setLensFacing(lensFacing)
-            setTargetResolution(Size(viewfinder.width, (viewfinder.width * (16.0 / 9.0)).toInt()))
-        }.build()
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
 
-        // Build the viewfinder
-        viewfinderPreview = Preview(previewConfig)
+        cameraProviderFuture.addListener(Runnable {
+            // Preview
+            preview = Preview.Builder().build()
 
-        // Every time the viewfinder is updated, recompute layout.
-        viewfinderPreview.setOnPreviewOutputUpdateListener {
-            // To update the SurfaceTexture, we have to remove it and re-add it.
-            val parent = viewfinder.parent as ViewGroup
-            parent.removeView(viewfinder)
-            parent.addView(viewfinder, 0)
-            viewfinder.surfaceTexture = it.surfaceTexture
-            updateTransform()
-        }
+            val rotation = viewfinder.display.rotation
+            val cameraProvider = cameraProviderFuture.get()
+            val cameraSelector = CameraSelector.Builder().requireLensFacing(lensFacing).build()
 
-        // Create configuration object for the image capture.
-        val imageCaptureConfig: ImageCaptureConfig = ImageCaptureConfig.Builder().apply {
-            setLensFacing(lensFacing)
-            setTargetResolution(previewConfig.targetResolution)
-            setCaptureMode(ImageCapture.CaptureMode.MAX_QUALITY)
-        }.build()
+            // Preview
+            preview = Preview.Builder()
+                // We request aspect ratio but no resolution
+                .setTargetAspectRatio(AspectRatio.RATIO_16_9)
+                // Set initial target rotation
+                .setTargetRotation(rotation)
+                .build()
 
-        // Build the image capture.
-        imageCapture = ImageCapture(imageCaptureConfig)
+            // ImageCapture
+            imageCapture = ImageCapture.Builder()
+                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                // We request aspect ratio but no resolution to match preview config, but letting
+                // CameraX optimize for whatever specific resolution best fits our use cases
+                .setTargetAspectRatio(AspectRatio.RATIO_16_9)
+                // Set initial target rotation, we will have to call this again if rotation changes
+                // during the lifecycle of this use case
+                .setTargetRotation(rotation)
+                .build()
 
-        // Bind use cases to lifecycle
-        CameraX.unbindAll()
-        CameraX.bindToLifecycle(this, viewfinderPreview, imageCapture)
+            // Must unbind the use-cases before rebinding them
+            cameraProvider.unbindAll()
 
-        // Build daily picture object for picture capture.
-        dailyPicture = DailyPicture(imageCapture, viewfinder, prev_picture, executor)
+            try {
+                // A variable number of use-cases can be passed here -
+                // camera provides access to CameraControl & CameraInfo
+                camera = cameraProvider.bindToLifecycle(
+                    this, cameraSelector, preview, imageCapture
+                )
+
+                // Attach the viewfinder's surface provider to preview use case
+                preview?.setSurfaceProvider(viewfinder.createSurfaceProvider())
+            } catch (exc: Exception) {
+                logError("Use case binding failed", exc)
+            }
+        }, ContextCompat.getMainExecutor(requireContext()))
     }
 
     /**
@@ -222,41 +243,16 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
         CameraX.unbindAll()
     }
 
-    private fun updateTransform() {
-        val matrix = Matrix()
-
-        // Compute the center of the view finder
-        val centerX = viewfinder.width / 2f
-        val centerY = viewfinder.height / 2f
-
-        // Correct preview output to account for display rotation
-        val rotationDegrees = when(viewfinder.display.rotation) {
-            Surface.ROTATION_0 -> 0
-            Surface.ROTATION_90 -> 90
-            Surface.ROTATION_180 -> 180
-            Surface.ROTATION_270 -> 270
-            else -> return
-        }
-        matrix.postRotate(-rotationDegrees.toFloat(), centerX, centerY)
-
-        viewfinder.setTransform(matrix)
-    }
-
-    /**
-     * Upon the take picture button being pressed, takes a picture.
-     */
-    private fun takePicture(view: View) {
-        dailyPicture.takePicture()
-    }
-
     /**
      * Upon the switch camera button being pressed, switch the camera.
      */
-    private fun switchCamera(view: View) {
-        lensFacing = if (lensFacing == CameraX.LensFacing.FRONT)
-            CameraX.LensFacing.BACK
+    private fun switchCamera() {
+        lensFacing = if (lensFacing == CameraSelector.LENS_FACING_FRONT)
+            CameraSelector.LENS_FACING_BACK
         else
-            CameraX.LensFacing.FRONT
+            CameraSelector.LENS_FACING_FRONT
+
+        logDebug("Switched camera to $lensFacing")
 
         stopCamera()
         startCamera()
@@ -265,7 +261,135 @@ class MainFragment: Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener 
     /**
      * Upon the open gallery button being pressed, open the gallery.
      */
-    private fun openGallery(view: View) {
+    private fun openGallery() {
         startActivity(Intent(activity, GalleryActivity::class.java))
+    }
+
+    /**
+     * Upon the take picture button being pressed, takes a picture.
+     */
+    private fun takePicture() {
+        // Gets the lens facing descriptor.
+        val isFacingFront: Boolean = lensFacing == CameraSelector.LENS_FACING_FRONT
+        val lensFacingStr = if (isFacingFront) "F" else "B"
+
+        logDebug("Lens facing: $lensFacing")
+
+        // Gets the desired directory and file names.
+        val file = File(pictureDir, "DayAfterDay-${Utilities.getTime()}-$lensFacingStr.jpg")
+
+        // Setup image capture metadata
+        val metadata = ImageCapture.Metadata().apply {
+            // Mirror image when using the front camera
+            isReversedHorizontal = isFacingFront
+        }
+
+        // Create output options object which contains file + metadata
+        val outputOptions = ImageCapture.OutputFileOptions.Builder(file)
+            .setMetadata(metadata)
+            .build()
+
+        imageCapture?.takePicture(outputOptions, executor,
+            object : ImageCapture.OnImageSavedCallback {
+                override fun onError(e: ImageCaptureException) {
+                    flashScreen()
+
+                    toastLong(R.string.picture_failed)
+                    logError(Utilities.getString(R.string.picture_failed), e)
+                }
+
+                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                    val savedUri = output.savedUri ?: Uri.fromFile(file)
+                    flashScreen()
+
+                    // Implicit broadcasts will be ignored for devices running API
+                    // level >= 24, so if you only target 24+ you can remove this statement
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+                        MainActivity.applicationContext()
+                            .sendBroadcast(
+                                Intent(
+                                    android.hardware.Camera.ACTION_NEW_PICTURE,
+                                    savedUri
+                                )
+                            )
+                    }
+
+                    // If the folder selected is an external media directory, this is unnecessary
+                    // but otherwise other apps will not be able to access our images unless we
+                    // scan them using [MediaScannerConnection]
+                    val mimeType = MimeTypeMap.getSingleton()
+                        .getMimeTypeFromExtension(savedUri.toFile().extension)
+                    MediaScannerConnection.scanFile(
+                        MainActivity.applicationContext(),
+                        arrayOf(savedUri.toFile().absolutePath),
+                        arrayOf(mimeType)
+                    ) { _, uri ->
+                        logDebug("Image capture scanned into media store: $uri")
+                    }
+
+                    Handler(Looper.getMainLooper()).post {
+                        MainFragment().createPreviousPicture(prev_picture)
+                    }
+
+                    // Save a thumbnail for the gallery.
+                    saveThumbnail(file)
+
+                    logDebug("Photo saved: $savedUri")
+                }
+            }
+        )
+
+        logDebug(file.absolutePath)
+    }
+
+    fun saveThumbnail(file: File) {
+        val thumbnail =
+            getThumbnail(Drawable.createFromPath(file.absolutePath) ?: return).bitmap
+        val thumbnailFile =
+            File(thumbnailDir, "${file.nameWithoutExtension}-thumb.${file.extension}")
+
+        try {
+            val stream: OutputStream = FileOutputStream(thumbnailFile)
+
+            thumbnail.compress(Bitmap.CompressFormat.JPEG, 100, stream)
+
+            stream.flush()
+            stream.close()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+
+    }
+
+    private fun getThumbnail(originalImage: Drawable): BitmapDrawable {
+        val originalBitmap = (originalImage as BitmapDrawable).bitmap
+
+        var width = originalBitmap.width.toFloat()
+        var height = originalBitmap.height.toFloat()
+        val maxSize = 100.0F
+
+        if (width > maxSize || height > maxSize) {
+            if (width > height) {
+                height = floor((height / width) * maxSize)
+                width = maxSize
+            } else {
+                width = floor((width / height) * maxSize)
+                height = maxSize
+            }
+        }
+
+        val scaledBitmap =
+            Bitmap.createScaledBitmap(originalBitmap, width.toInt(), height.toInt(), false)
+
+        return BitmapDrawable(MainActivity.applicationContext().resources, scaledBitmap)
+    }
+
+    /**
+     * Flash the screen to indicate to the user that the picture has been taken.
+     */
+    internal fun flashScreen() {
+        val animation = AlphaAnimation(0.0F, 1.0F)
+        animation.duration = 250
+        viewfinder.startAnimation(animation)
     }
 }

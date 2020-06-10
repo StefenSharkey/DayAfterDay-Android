@@ -23,6 +23,7 @@ import android.os.Environment
 import android.util.Log
 import android.widget.Toast
 import java.io.File
+import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -116,6 +117,10 @@ object Utilities {
 
     fun logError(obj: Any): Int {
         return Log.e(logTag, obj.toString())
+    }
+
+    fun logError(message: String, exception: Exception): Int {
+        return Log.e(logTag, message, exception)
     }
 
     fun logInfo(obj: Any): Int {

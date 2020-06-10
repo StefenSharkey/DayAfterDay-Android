@@ -39,7 +39,7 @@ class GalleryActivity: AppCompatActivity(), TimelapseDialogFragment.NoticeDialog
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_timelapse -> {
-                if (filesDir != null && removeDirectories(filesDir.listFiles()!!).isNotEmpty()) {
+                if (removeDirectories(Utilities.pictureDir.listFiles()!!).isNotEmpty()) {
                     val fragmentTransaction = supportFragmentManager.beginTransaction()
                     val prev = supportFragmentManager.findFragmentByTag("dialog")
 
