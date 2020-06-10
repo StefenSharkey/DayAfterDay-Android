@@ -169,10 +169,10 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
 
     private fun reportProgress(numerator: Int, denominator: Int, timeElapsed: Long): Double {
         val progress = numerator.toDouble() / denominator.toDouble()
+        val timeRemaining = getString(R.string.timelapse_time_remaining) +
+                calculateTimeRemaining(numerator, denominator, timeElapsed)
 
-        notificationBuilder
-            .setSubText(getString(R.string.timelapse_time_remaining,
-                calculateTimeRemaining(numerator, denominator, timeElapsed)))
+        notificationBuilder.setSubText(timeRemaining)
 
         if (timeElapsed == 0L) {
             notificationBuilder.setProgress(denominator, numerator, true)
@@ -187,9 +187,13 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
         return progress
     }
 
-    private fun calculateTimeRemaining(numerator: Int, denominator: Int, timeElapsed: Long): String {
+    private fun calculateTimeRemaining(
+        numerator: Int,
+        denominator: Int,
+        timeElapsed: Long
+    ): String {
         return if (timeElapsed == 0L) {
-            "--:--"
+            " --:--"
         } else {
             val timeRemaining = timeElapsed / 1000 * (denominator - numerator)
             val hours = if (timeRemaining / (60 * 60) > 0) {
@@ -206,9 +210,7 @@ class Timelapse(private val framesPerSecond: Int, private val openWhenFinished: 
 
             val seconds = String.format("%02d", timeRemaining % 60)
 
-            logDebug(hours + minutes + seconds)
-
-            hours + minutes + seconds
+            " $hours$minutes$seconds"
         }
     }
 }
