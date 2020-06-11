@@ -16,24 +16,27 @@
 
 package com.stefensharkey.dayafterday
 
+import android.content.Context
 import android.content.res.Resources
 import android.graphics.drawable.Drawable
 import android.os.Environment
 import android.util.Log
 import android.widget.Toast
 import java.io.File
-import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.concurrent.atomic.AtomicInteger
 
 object Utilities {
 
+    lateinit var context: Context
+
     private const val logTag = "Day After Day"
     val fileDir: File = File("${Environment.getExternalStorageDirectory()}/DayAfterDay")
     val pictureDir: File = File(fileDir, "pictures")
     val thumbnailDir: File = File(fileDir, "thumbnails")
     val timelapseDir: File = File(fileDir, "timelapses")
+    val tempDir: File by lazy { File(context.filesDir, "temp") }
 
     private val notificationId = AtomicInteger(0)
 
@@ -95,11 +98,11 @@ object Utilities {
     }
 
     fun getString(resId: Int): String {
-        return MainActivity.applicationContext().getString(resId)
+        return context.getString(resId)
     }
 
     fun getString(resId: Int, vararg args: Any): String {
-        return MainActivity.applicationContext().getString(resId, args)
+        return context.getString(resId, args)
     }
 
     fun logDebug(obj: Any): Int {
@@ -131,19 +134,19 @@ object Utilities {
     }
 
     fun toastLong(resId: Int) {
-        Toast.makeText(MainActivity.applicationContext(), resId, Toast.LENGTH_LONG).show()
+        Toast.makeText(context, resId, Toast.LENGTH_LONG).show()
     }
 
     fun toastLong(text: String) {
-        Toast.makeText(MainActivity.applicationContext(), text, Toast.LENGTH_LONG).show()
+        Toast.makeText(context, text, Toast.LENGTH_LONG).show()
     }
 
     fun toastShort(resId: Int) {
-        Toast.makeText(MainActivity.applicationContext(), resId, Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, resId, Toast.LENGTH_SHORT).show()
     }
 
     fun toastShort(text: String) {
-        Toast.makeText(MainActivity.applicationContext(), text, Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
     }
 
     /**

@@ -29,14 +29,14 @@
 
     <string name="timelapse_title">Timelapse</string>
     <string name="timelapse_settings">Timelapse Settings</string>
-    <string name="timelapse_progress">Timelapse Rendering Progress</string>
-    <string name="timelapse_time_remaining">Time Remaining: </string>
+    <string name="timelapse_rendering">Timelapse Rendering…</string>
     <string name="timelapse_finished">Timelapse Finished</string>
+    <string name="timelapsed_failed">Timelapse Failed</string>
     <string name="timelapse_tap_to_open">Tap to open video.</string>
     <string name="timelapse_no_pictures">No pictures available for timelapse.</string>
     <string name="timelapse_already_happening">Rendering is already taking place.</string>
 
-    <string name="timelapse_notification_channel_id">timelapse_progress</string>
+    <string name="timelapse_notification_channel_id">timelapse</string>
 
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>

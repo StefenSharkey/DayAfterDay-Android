@@ -19,6 +19,7 @@ package com.stefensharkey.dayafterday
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDialogFragment
 import com.stefensharkey.dayafterday.Utilities.pictureDir
@@ -41,19 +42,27 @@ class GalleryActivity : AppCompatActivity(), TimelapseDialogFragment.NoticeDialo
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_timelapse -> {
-                if (removeDirectories(pictureDir.listFiles()!!).isNotEmpty()) {
-                    val fragmentTransaction = supportFragmentManager.beginTransaction()
-                    val prev = supportFragmentManager.findFragmentByTag("dialog")
+                if (!Timelapse.isRendering) {
+                    if (removeDirectories(pictureDir.listFiles()!!).isNotEmpty()) {
+                        val fragmentTransaction = supportFragmentManager.beginTransaction()
+                        val prev = supportFragmentManager.findFragmentByTag("dialog")
 
-                    if (prev != null) {
-                        fragmentTransaction.remove(prev)
+                        if (prev != null) {
+                            fragmentTransaction.remove(prev)
+                        }
+
+                        fragmentTransaction.addToBackStack(null)
+                        val dialogFragment = TimelapseDialogFragment()
+                        dialogFragment.show(fragmentTransaction, "dialog")
+                    } else {
+                        toastLong(R.string.timelapse_no_pictures)
                     }
-
-                    fragmentTransaction.addToBackStack(null)
-                    val dialogFragment = TimelapseDialogFragment()
-                    dialogFragment.show(fragmentTransaction, "dialog")
                 } else {
-                    toastLong(R.string.timelapse_no_pictures)
+                    Toast.makeText(
+                        applicationContext,
+                        R.string.timelapse_already_happening,
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
                 true
             }
@@ -66,7 +75,8 @@ class GalleryActivity : AppCompatActivity(), TimelapseDialogFragment.NoticeDialo
 
         Timelapse.createTimelapse(
             timelapseDialogFragment.framesPerSecond,
-            timelapseDialogFragment.openWhenFinished
+            timelapseDialogFragment.openWhenFinished,
+            applicationContext
         )
         dialogFragment.dismiss()
     }

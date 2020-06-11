@@ -19,182 +19,111 @@ package com.stefensharkey.dayafterday
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Build
-import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.FileProvider
+import com.arthenica.mobileffmpeg.FFmpeg
 import com.stefensharkey.dayafterday.Utilities.getNotificationId
 import com.stefensharkey.dayafterday.Utilities.getString
 import com.stefensharkey.dayafterday.Utilities.getTime
 import com.stefensharkey.dayafterday.Utilities.logDebug
-import com.stefensharkey.dayafterday.Utilities.logVerbose
+import com.stefensharkey.dayafterday.Utilities.logError
 import com.stefensharkey.dayafterday.Utilities.pictureDir
 import com.stefensharkey.dayafterday.Utilities.removeDirectories
+import com.stefensharkey.dayafterday.Utilities.tempDir
 import com.stefensharkey.dayafterday.Utilities.timelapseDir
-import org.jcodec.api.android.AndroidSequenceEncoder
-import org.jcodec.common.io.NIOUtils
-import org.jcodec.common.io.SeekableByteChannel
-import org.jcodec.common.model.Rational
 import java.io.File
-import java.nio.channels.ClosedByInterruptException
-import kotlin.concurrent.thread
+import java.io.IOException
+import java.io.OutputStreamWriter
 
 object Timelapse {
 
-    private val notificationManager = MainActivity.applicationContext()
-        .getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    private lateinit var context: Context
+
+    private lateinit var notificationManager: NotificationManager
     private lateinit var notificationChannel: NotificationChannel
-    private val notificationBuilder =
-        NotificationCompat.Builder(MainActivity.applicationContext(), "")
-    private val notificationIntent =
-        PendingIntent.getActivity(
-            MainActivity.applicationContext(),
-            0,
-            Intent(MainActivity.applicationContext(), MainActivity::class.java),
-            0
-        )
-    private var notificationId = 0
+    private lateinit var notificationBuilder: NotificationCompat.Builder
 
-    private var progress = 0.0
+    var isRendering: Boolean = false
+        private set
 
-    private var timelapseThread: Thread? = null
+    fun createTimelapse(framesPerSecond: Int, openWhenFinished: Boolean, context: Context) {
+        isRendering = true
+        this.context = context
 
-    fun createTimelapse(framesPerSecond: Int, openWhenFinished: Boolean) {
-        notificationId = getNotificationId()
+        val notificationId = getNotificationId()
 
-        if (timelapseThread == null) {
-            timelapseThread = thread(start = true) {
-                var canceled = false
+        try {
+            tempDir.mkdir()
+            timelapseDir.mkdir()
 
-                try {
-                    timelapseDir.mkdir()
+            // Gets the desired directory and file names.
+            val tempTimelapseFile = File(tempDir, "DayAfterDay-${getTime()}.mp4")
+            val timelapseFile = File(timelapseDir, "DayAfterDay-${getTime()}.mp4")
 
-                    // Gets the desired directory and file names.
-                    val timelapseFile = File(timelapseDir, "DayAfterDay-${getTime()}.mp4")
+            val files = removeDirectories(pictureDir.listFiles() ?: return).sorted()
 
-                    val files = removeDirectories(pictureDir.listFiles() ?: return@thread)
-                    var out: SeekableByteChannel? = null
+            // Create file containing list of files.
+            writeToFile("ffmpeg_list.txt", files.joinToString("\n file ", "file "))
 
-                    try {
-                        out = NIOUtils.writableFileChannel(timelapseFile.absolutePath)
-                        val encoder = AndroidSequenceEncoder(out, Rational.R(framesPerSecond, 1))
+            // Construct the FFmpeg command.
+            val ffmpegMakeTemp = "-f concat " +
+                    "-r $framesPerSecond " +
+                    "-safe 0 " +
+                    "-i ${context.getFileStreamPath("ffmpeg_list.txt").absolutePath} " +
+                    "-c:v libx264 " +
+                    tempTimelapseFile.absolutePath
+            val ffmpegMakeFinal = "-i ${tempTimelapseFile.absolutePath} " +
+                    "-c copy " +
+                    "-metadata:s:v:0 rotate=90 " +
+                    timelapseFile.absolutePath
 
-                        // Start the progress notification.
-                        createNotification(files.size)
-                        progress = reportProgress(0, files.size, 0)
+            initNotification()
 
-                        // For every image, encode it and update the progress notification.
-                        for ((counter, file) in files.sortedDescending().withIndex()) {
-                            val timerStart = System.currentTimeMillis()
-                            val image =
-                                (Drawable.createFromPath(file.absolutePath) as BitmapDrawable).bitmap
-                            logVerbose("Starting encoding of ${file.absolutePath}")
-
-                            encoder.encodeImage(image)
-                            logVerbose("Ending encoding of ${file.absolutePath}")
-
-                            reportProgress(
-                                counter + 1,
-                                files.size,
-                                System.currentTimeMillis() - timerStart
-                            )
-                        }
-
-                        encoder.finish()
-                    } catch (e: ClosedByInterruptException) {
-                        canceled = true
-                        logDebug("Canceled timelapse generation.")
-                    } finally {
-                        NIOUtils.closeQuietly(out)
-
-                        if (!canceled) {
-                            val uri =
-                                FileProvider.getUriForFile(
-                                    MainActivity.applicationContext(),
-                                    "${BuildConfig.APPLICATION_ID}.provider",
-                                    timelapseFile
-                                )
-
-                            val openIntent = getOpenPendingIntent(uri)
-
-                            // Show the finished notification.
-                            notificationBuilder
-                                .setContentTitle(getString(R.string.timelapse_finished))
-                                .setContentText(getString(R.string.timelapse_tap_to_open))
-                                .setSmallIcon(android.R.drawable.stat_sys_download_done)
-                                .setOngoing(false)
-                                .setProgress(0, 0, false)
-                                .setContentIntent(openIntent)
-                                .setSubText(null)
-                                .setAutoCancel(true)
-                                .addAction(
-                                    android.R.drawable.ic_menu_share,
-                                    getString(R.string.share),
-                                    getSharePendingIntent(uri)
-                                )
-                            notificationManager.notify(notificationId, notificationBuilder.build())
-
-                            if (openWhenFinished) {
-                                openIntent.send()
-                            }
-                        }
-                    }
-                } catch (e: InterruptedException) {
-                    logDebug("Canceled timelapse generation.")
-                }
-
-                timelapseThread = null
-            }
-        } else {
-            Toast.makeText(
-                MainActivity.applicationContext(),
-                R.string.timelapse_already_happening,
-                Toast.LENGTH_SHORT
-            ).show()
-        }
-    }
-
-    private fun stopTimelapse(notificationId: Int) {
-        if (notificationId == -1) {
-            notificationManager.cancelAll()
-        } else {
-            notificationManager.cancel(notificationId)
-        }
-
-        timelapseThread?.interrupt()
-        logDebug("Trying to cancel timelapse thread.")
-    }
-
-    private fun createNotification(maxProgress: Int) {
-        val pendingIntentCancel = PendingIntent.getBroadcast(
-            MainActivity.applicationContext(),
-            0,
-            Intent(MainActivity.applicationContext(), ActionReceiver::class.java).apply {
-                action = Intent.ACTION_CLOSE_SYSTEM_DIALOGS
-                putExtra("action", "cancel")
-                putExtra("notificationId", notificationId)
-            },
-            0
-        )
-
-        notificationBuilder
-            .setContentTitle(getString(R.string.timelapse_progress))
-            .setSmallIcon(android.R.drawable.stat_sys_download)
-            .setContentIntent(notificationIntent)
-            .setShowWhen(false)
-            .setOngoing(true)
-            .setProgress(maxProgress, 0, true)
-            .addAction(
-                android.R.drawable.ic_menu_close_clear_cancel,
-                getString(R.string.cancel),
-                pendingIntentCancel
+            val applicationIntent = PendingIntent.getActivity(
+                Timelapse.context,
+                0,
+                Intent(Timelapse.context, MainActivity::class.java),
+                0
             )
+
+            showStartNotification(notificationId, applicationIntent)
+
+            // Execute the command and observe its return code.
+            if (FFmpeg.execute(ffmpegMakeTemp) == 0) {
+                val uri =
+                    FileProvider.getUriForFile(
+                        context,
+                        "${BuildConfig.APPLICATION_ID}.provider",
+                        timelapseFile
+                    )
+                val openIntent = getOpenTimelapsePendingIntent(uri)
+                val shareIntent = getShareTimelapsePendingIntent(uri)
+
+                if (FFmpeg.execute(ffmpegMakeFinal) == 0) {
+                    showSuccessNotification(notificationId, openIntent, shareIntent)
+
+                    if (openWhenFinished) {
+                        openIntent.send()
+                    }
+                } else {
+                    showFailedNotification(notificationId, applicationIntent)
+                }
+            }
+        } catch (e: InterruptedException) {
+            logDebug("Canceled timelapse generation.")
+        }
+
+        isRendering = false
+    }
+
+    private fun initNotification() {
+        notificationManager =
+            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationBuilder = NotificationCompat.Builder(context, "")
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             notificationChannel =
@@ -209,13 +138,60 @@ object Timelapse {
         } else {
             notificationBuilder.priority = NotificationCompat.PRIORITY_DEFAULT
         }
+    }
+
+    private fun showStartNotification(notificationId: Int, openIntent: PendingIntent) {
+        notificationBuilder
+            .setContentTitle(getString(R.string.timelapse_rendering))
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentIntent(openIntent)
+            .setShowWhen(false)
+            .setOngoing(true)
+            .setProgress(0, 0, true)
 
         notificationManager.notify(notificationId, notificationBuilder.build())
     }
 
-    private fun getOpenPendingIntent(uri: Uri): PendingIntent {
+    private fun showSuccessNotification(
+        notificationId: Int,
+        openIntent: PendingIntent,
+        shareIntent: PendingIntent
+    ) {
+        notificationBuilder
+            .setContentTitle(getString(R.string.timelapse_finished))
+            .setContentText(getString(R.string.timelapse_tap_to_open))
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setOngoing(false)
+            .setProgress(0, 0, false)
+            .setContentIntent(openIntent)
+            .setSubText(null)
+            .setAutoCancel(true)
+            .addAction(
+                android.R.drawable.ic_menu_share,
+                getString(R.string.share),
+                shareIntent
+            )
+
+        notificationManager.notify(notificationId, notificationBuilder.build())
+    }
+
+    private fun showFailedNotification(notificationId: Int, openIntent: PendingIntent) {
+        notificationBuilder
+            .setContentTitle(getString(R.string.timelapsed_failed))
+            .setContentText(null)
+            .setSmallIcon(android.R.drawable.stat_notify_error)
+            .setOngoing(false)
+            .setProgress(0, 0, false)
+            .setContentIntent(openIntent)
+            .setSubText(null)
+            .setAutoCancel(true)
+
+        notificationManager.notify(notificationId, notificationBuilder.build())
+    }
+
+    private fun getOpenTimelapsePendingIntent(uri: Uri): PendingIntent {
         return PendingIntent.getActivity(
-            MainActivity.applicationContext(),
+            context,
             0,
             Intent().apply {
                 action = Intent.ACTION_VIEW
@@ -226,10 +202,10 @@ object Timelapse {
         )
     }
 
-    private fun getSharePendingIntent(uri: Uri): PendingIntent {
+    private fun getShareTimelapsePendingIntent(uri: Uri): PendingIntent {
         return PendingIntent.getActivity(
-            MainActivity.applicationContext(),
-            0,
+            context,
+            1,
             Intent().apply {
                 action = Intent.ACTION_SEND
                 putExtra(Intent.EXTRA_STREAM, uri)
@@ -239,69 +215,14 @@ object Timelapse {
         )
     }
 
-    private fun reportProgress(numerator: Int, denominator: Int, timeElapsed: Long): Double {
-        val progress = numerator.toDouble() / denominator.toDouble()
-        val timeRemaining = getString(R.string.timelapse_time_remaining) +
-                calculateTimeRemaining(numerator, denominator, timeElapsed)
-
-        notificationBuilder.setSubText(timeRemaining)
-
-        if (timeElapsed == 0L) {
-            notificationBuilder.setProgress(denominator, numerator, true)
-        } else {
-            notificationBuilder.setProgress(denominator, numerator, false)
-        }
-
-        notificationManager.notify(notificationId, notificationBuilder.build())
-
-        logVerbose("Progress: $progress")
-
-        return progress
-    }
-
-    private fun calculateTimeRemaining(
-        numerator: Int,
-        denominator: Int,
-        timeElapsed: Long
-    ): String {
-        return if (timeElapsed == 0L) {
-            " --:--"
-        } else {
-            val timeRemaining: Long = timeElapsed / 1000 * (denominator - numerator)
-            val hours: String = if (timeRemaining / (60 * 60) > 0) {
-                String.format("%02d", timeRemaining / (60 * 60)) + ":"
-            } else {
-                ""
+    private fun writeToFile(fileName: String, data: String) {
+        try {
+            OutputStreamWriter(context.openFileOutput(fileName, Context.MODE_PRIVATE)).apply {
+                write(data)
+                close()
             }
-
-            val minutes: String = if (timeRemaining / 60 > 0) {
-                String.format("%02d", timeRemaining / 60) + ":"
-            } else {
-                "00:"
-            }
-
-            val seconds: String = String.format("%02d", timeRemaining % 60)
-
-            " $hours$minutes$seconds"
-        }
-    }
-
-    class ActionReceiver : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-//            StringBuilder().apply {
-//                append("Action: ${intent.action}\n")
-//                append("URI: ${intent.toUri(Intent.URI_INTENT_SCHEME)}\n")
-//                append("Extras: ${intent.extras}\n")
-//                toString().also { log ->
-//                    logDebug(log)
-//                    Toast.makeText(context, log, Toast.LENGTH_LONG).show()
-//                }
-//            }
-            val action = intent.getStringExtra("action")
-
-            if (action == "cancel") {
-                stopTimelapse(intent.getIntExtra("notificationId", -1))
-            }
+        } catch (e: IOException) {
+            logError("File write failed.", e)
         }
     }
 }

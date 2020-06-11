@@ -315,7 +315,7 @@ class MainFragment : Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener
                     val mimeType = MimeTypeMap.getSingleton()
                         .getMimeTypeFromExtension(savedUri.toFile().extension)
                     MediaScannerConnection.scanFile(
-                        MainActivity.applicationContext(),
+                        context,
                         arrayOf(savedUri.toFile().absolutePath),
                         arrayOf(mimeType)
                     ) { _, uri ->
@@ -376,7 +376,7 @@ class MainFragment : Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener
         val scaledBitmap =
             Bitmap.createScaledBitmap(originalBitmap, width.toInt(), height.toInt(), false)
 
-        return BitmapDrawable(MainActivity.applicationContext().resources, scaledBitmap)
+        return BitmapDrawable(context?.resources, scaledBitmap)
     }
 
     /**
