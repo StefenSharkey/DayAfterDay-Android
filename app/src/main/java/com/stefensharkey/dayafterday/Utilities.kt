@@ -18,7 +18,6 @@ package com.stefensharkey.dayafterday
 
 import android.content.res.Resources
 import android.graphics.drawable.Drawable
-import android.os.Build
 import android.os.Environment
 import android.util.Log
 import android.widget.Toast
@@ -89,10 +88,7 @@ object Utilities {
 
     fun getTime(): String {
         // Gets the current locale.
-        val locale = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
-            Resources.getSystem().configuration.locales.get(0)
-        else
-            Resources.getSystem().configuration.locale
+        val locale = Resources.getSystem().configuration.locales.get(0)
 
         // Formats the date and time as desired.
         return SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", locale).format(Calendar.getInstance().time)

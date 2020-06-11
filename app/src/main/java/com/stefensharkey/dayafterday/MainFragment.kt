@@ -24,7 +24,6 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.media.MediaScannerConnection
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -309,18 +308,6 @@ class MainFragment : Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                     val savedUri = output.savedUri ?: Uri.fromFile(file)
                     flashScreen()
-
-                    // Implicit broadcasts will be ignored for devices running API
-                    // level >= 24, so if you only target 24+ you can remove this statement
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                        MainActivity.applicationContext()
-                            .sendBroadcast(
-                                Intent(
-                                    android.hardware.Camera.ACTION_NEW_PICTURE,
-                                    savedUri
-                                )
-                            )
-                    }
 
                     // If the folder selected is an external media directory, this is unnecessary
                     // but otherwise other apps will not be able to access our images unless we
