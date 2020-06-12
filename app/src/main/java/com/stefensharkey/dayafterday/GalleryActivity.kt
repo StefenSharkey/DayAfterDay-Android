@@ -25,6 +25,7 @@ import androidx.appcompat.app.AppCompatDialogFragment
 import com.stefensharkey.dayafterday.Utilities.pictureDir
 import com.stefensharkey.dayafterday.Utilities.removeDirectories
 import com.stefensharkey.dayafterday.Utilities.toastLong
+import kotlin.concurrent.thread
 
 class GalleryActivity : AppCompatActivity(), TimelapseDialogFragment.NoticeDialogListener {
 
@@ -73,11 +74,14 @@ class GalleryActivity : AppCompatActivity(), TimelapseDialogFragment.NoticeDialo
     override fun onDialogPositiveClick(dialogFragment: AppCompatDialogFragment) {
         val timelapseDialogFragment = dialogFragment as TimelapseDialogFragment
 
-        Timelapse.createTimelapse(
-            timelapseDialogFragment.properties,
-            applicationContext
-        )
         dialogFragment.dismiss()
+
+        thread(start = true) {
+            Timelapse.createTimelapse(
+                timelapseDialogFragment.properties,
+                applicationContext
+            )
+        }
     }
 
     override fun onDialogNegativeClick(dialogFragment: AppCompatDialogFragment) {
