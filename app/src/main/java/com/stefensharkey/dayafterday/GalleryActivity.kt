@@ -53,8 +53,7 @@ class GalleryActivity : AppCompatActivity(), TimelapseDialogFragment.NoticeDialo
                         }
 
                         fragmentTransaction.addToBackStack(null)
-                        val dialogFragment = TimelapseDialogFragment()
-                        dialogFragment.show(fragmentTransaction, "dialog")
+                        TimelapseDialogFragment().show(fragmentTransaction, "dialog")
                     } else {
                         toastLong(R.string.timelapse_no_pictures)
                     }

@@ -144,6 +144,8 @@ class MainFragment : Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener
                 true
             }
         }
+
+        settings_button.setOnClickListener { openSettings() }
     }
 
     /**
@@ -216,7 +218,7 @@ class MainFragment : Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener
 
             // ImageCapture
             imageCapture = ImageCapture.Builder()
-                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
                 // We request aspect ratio but no resolution to match preview config, but letting
                 // CameraX optimize for whatever specific resolution best fits our use cases
                 .setTargetAspectRatio(AspectRatio.RATIO_16_9)
@@ -323,7 +325,7 @@ class MainFragment : Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener
                     }
 
                     Handler(Looper.getMainLooper()).post {
-                        MainFragment().createPreviousPicture(prev_picture)
+                        createPreviousPicture(prev_picture)
                     }
 
                     // Save a thumbnail for the gallery.
@@ -386,5 +388,12 @@ class MainFragment : Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener
         val animation = AlphaAnimation(0.0F, 1.0F)
         animation.duration = 250
         viewfinder.startAnimation(animation)
+    }
+
+    /**
+     * Upon the settings button being pressed, open the settings.
+     */
+    private fun openSettings() {
+        startActivity(Intent(activity, SettingsActivity::class.java))
     }
 }
