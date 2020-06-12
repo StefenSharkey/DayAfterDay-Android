@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import androidx.appcompat.app.AppCompatDialogFragment
+import androidx.core.view.updatePaddingRelative
 import kotlinx.android.synthetic.main.dialog_timelapse.*
 
 class TimelapseDialogFragment : AppCompatDialogFragment() {
@@ -62,6 +63,7 @@ class TimelapseDialogFragment : AppCompatDialogFragment() {
                     addView(
                         RadioButton(context).apply {
                             text = resources.getStringArray(R.array.resolutions_array)[x]
+                            updatePaddingRelative(start = 5, end = 5)
                         }
                     )
                 }
