@@ -7,13 +7,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.RadioButton
-import android.widget.RadioGroup
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatDialogFragment
-import androidx.core.view.updatePaddingRelative
 import kotlinx.android.synthetic.main.dialog_timelapse.*
 
-class TimelapseDialogFragment : AppCompatDialogFragment() {
+class TimelapseDialogFragment : AppCompatDialogFragment(), AdapterView.OnItemSelectedListener {
 
     // Use this instance of the interface to deliver action events
     private lateinit var listener: NoticeDialogListener
@@ -57,22 +56,10 @@ class TimelapseDialogFragment : AppCompatDialogFragment() {
     override fun onResume() {
         super.onResume()
 
-        customView.apply {
-            findViewById<RadioGroup>(timelapse_resolution_radio.id).apply {
-                for (x in Resolution.values().indices) {
-                    addView(
-                        RadioButton(context).apply {
-                            text = resources.getStringArray(R.array.resolutions_array)[x]
-                            updatePaddingRelative(start = 5, end = 5)
-                        }
-                    )
-                }
-            }
-        }
-
-        val displayedValues = (IntArray(100) { i -> i + 1 }).map(Int::toString).toTypedArray()
-
+        // Frames per second NumberPicker
         timelapse_frames_per_second.apply {
+            val displayedValues = (IntArray(100) { i -> i + 1 }).map(Int::toString).toTypedArray()
+
             minValue = 1
             maxValue = displayedValues.size - 1
             value = properties[getString(R.string.frames_per_second)] as Int
@@ -83,16 +70,25 @@ class TimelapseDialogFragment : AppCompatDialogFragment() {
             }
         }
 
-        timelapse_open_when_finished.setOnCheckedChangeListener { _, isChecked ->
-            properties[getString(R.string.open_when_finished)] = isChecked
+        // Resolutions Spinner
+        // Fill spinner
+        ArrayAdapter.createFromResource(
+            requireContext(),
+            R.array.resolutions_array,
+            android.R.layout.simple_spinner_dropdown_item
+        ).also { adapter ->
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            timelapse_resolution_spinner.adapter = adapter
         }
 
-        timelapse_resolution_radio.apply {
-            check((properties[getString(R.string.resolution)] as Resolution).ordinal + 1)
+        timelapse_resolution_spinner.also { spinner ->
+            spinner.setSelection((properties[getString(R.string.resolution)] as Resolution).ordinal)
+            spinner.onItemSelectedListener = this
+        }
 
-            setOnCheckedChangeListener { _, checkedId ->
-                properties[getString(R.string.resolution)] = Resolution.values()[checkedId - 1]
-            }
+        // Open when finished CheckBox
+        timelapse_open_when_finished.setOnCheckedChangeListener { _, isChecked ->
+            properties[getString(R.string.open_when_finished)] = isChecked
         }
     }
 
@@ -107,5 +103,13 @@ class TimelapseDialogFragment : AppCompatDialogFragment() {
             // The activity doesn't implement the interface, throw exception.
             throw ClassCastException(("$context must implement NoticeDialogListener."))
         }
+    }
+
+    override fun onNothingSelected(parent: AdapterView<*>?) {
+
+    }
+
+    override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+        properties[getString(R.string.resolution)] = Resolution.values()[position]
     }
 }
