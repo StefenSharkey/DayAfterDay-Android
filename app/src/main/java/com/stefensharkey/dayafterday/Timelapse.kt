@@ -69,12 +69,15 @@ object Timelapse {
             // Create file containing list of files.
             writeToFile("ffmpeg_list.txt", files.joinToString("\n file ", "file "))
 
-            // Construct the FFmpeg command.
+            val res = properties[getString(R.string.resolution)] as Resolution
+
+            // Construct the FFmpeg commands.
             val ffmpegMakeTemp = "-f concat " +
                     "-r ${properties[getString(R.string.frames_per_second)]} " +
                     "-safe 0 " +
                     "-i ${context.getFileStreamPath("ffmpeg_list.txt").absolutePath} " +
                     "-c:v libx264 " +
+                    "-vf \"scale='min(${res.width},iw)':'min(${res.height},ih)'\" " +
                     tempTimelapseFile.absolutePath
             val ffmpegMakeFinal = "-i ${tempTimelapseFile.absolutePath} " +
                     "-c copy " +

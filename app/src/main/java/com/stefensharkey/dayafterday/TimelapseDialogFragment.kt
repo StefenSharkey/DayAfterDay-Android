@@ -7,6 +7,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import androidx.appcompat.app.AppCompatDialogFragment
 import kotlinx.android.synthetic.main.dialog_timelapse.*
 
@@ -27,6 +29,7 @@ class TimelapseDialogFragment : AppCompatDialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         properties = hashMapOf(
             Pair(getString(R.string.frames_per_second), 10),
+            Pair(getString(R.string.resolution), Resolution.RES_1080P),
             Pair(getString(R.string.open_when_finished), false)
         )
 
@@ -53,6 +56,18 @@ class TimelapseDialogFragment : AppCompatDialogFragment() {
     override fun onResume() {
         super.onResume()
 
+        customView.apply {
+            findViewById<RadioGroup>(timelapse_resolution_radio.id).apply {
+                for (x in Resolution.values().indices) {
+                    addView(
+                        RadioButton(context).apply {
+                            text = resources.getStringArray(R.array.resolutions_array)[x]
+                        }
+                    )
+                }
+            }
+        }
+
         val displayedValues = (IntArray(100) { i -> i + 1 }).map(Int::toString).toTypedArray()
 
         timelapse_frames_per_second.apply {
@@ -69,6 +84,14 @@ class TimelapseDialogFragment : AppCompatDialogFragment() {
         timelapse_open_when_finished.setOnCheckedChangeListener { _, isChecked ->
             properties[getString(R.string.open_when_finished)] = isChecked
         }
+
+        timelapse_resolution_radio.apply {
+            check((properties[getString(R.string.resolution)] as Resolution).ordinal + 1)
+
+            setOnCheckedChangeListener { _, checkedId ->
+                properties[getString(R.string.resolution)] = Resolution.values()[checkedId - 1]
+            }
+        }
     }
 
     override fun onAttach(context: Context) {
@@ -82,6 +105,5 @@ class TimelapseDialogFragment : AppCompatDialogFragment() {
             // The activity doesn't implement the interface, throw exception.
             throw ClassCastException(("$context must implement NoticeDialogListener."))
         }
-
     }
 }
