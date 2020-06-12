@@ -17,8 +17,7 @@ class TimelapseDialogFragment : AppCompatDialogFragment() {
 
     private lateinit var customView: View
 
-    var framesPerSecond: Int = 10
-    var openWhenFinished: Boolean = false
+    lateinit var properties: HashMap<String, Any>
 
     interface NoticeDialogListener {
         fun onDialogPositiveClick(dialogFragment: AppCompatDialogFragment)
@@ -26,6 +25,11 @@ class TimelapseDialogFragment : AppCompatDialogFragment() {
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        properties = hashMapOf(
+            Pair(getString(R.string.frames_per_second), 10),
+            Pair(getString(R.string.open_when_finished), false)
+        )
+
         customView = (activity?.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater)
             .inflate(R.layout.dialog_timelapse, null)
 
@@ -51,17 +55,19 @@ class TimelapseDialogFragment : AppCompatDialogFragment() {
 
         val displayedValues = (IntArray(100) { i -> i + 1 }).map(Int::toString).toTypedArray()
 
-        timelapse_frames_per_second.minValue = 1
-        timelapse_frames_per_second.maxValue = displayedValues.size - 1
-        timelapse_frames_per_second.value = framesPerSecond
-        timelapse_frames_per_second.displayedValues = displayedValues
+        timelapse_frames_per_second.apply {
+            minValue = 1
+            maxValue = displayedValues.size - 1
+            value = properties[getString(R.string.frames_per_second)] as Int
+            this.displayedValues = displayedValues
 
-        timelapse_frames_per_second.setOnValueChangedListener { _, _, newVal ->
-            framesPerSecond = newVal
+            setOnValueChangedListener { _, _, newVal ->
+                properties[getString(R.string.frames_per_second)] = newVal
+            }
         }
 
         timelapse_open_when_finished.setOnCheckedChangeListener { _, isChecked ->
-            openWhenFinished = isChecked
+            properties[getString(R.string.open_when_finished)] = isChecked
         }
     }
 

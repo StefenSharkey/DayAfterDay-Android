@@ -74,8 +74,7 @@ class GalleryActivity : AppCompatActivity(), TimelapseDialogFragment.NoticeDialo
         val timelapseDialogFragment = dialogFragment as TimelapseDialogFragment
 
         Timelapse.createTimelapse(
-            timelapseDialogFragment.framesPerSecond,
-            timelapseDialogFragment.openWhenFinished,
+            timelapseDialogFragment.properties,
             applicationContext
         )
         dialogFragment.dismiss()

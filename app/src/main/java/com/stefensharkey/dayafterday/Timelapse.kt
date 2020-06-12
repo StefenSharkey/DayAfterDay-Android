@@ -50,7 +50,7 @@ object Timelapse {
     var isRendering: Boolean = false
         private set
 
-    fun createTimelapse(framesPerSecond: Int, openWhenFinished: Boolean, context: Context) {
+    fun createTimelapse(properties: HashMap<String, Any>, context: Context) {
         isRendering = true
         this.context = context
 
@@ -71,7 +71,7 @@ object Timelapse {
 
             // Construct the FFmpeg command.
             val ffmpegMakeTemp = "-f concat " +
-                    "-r $framesPerSecond " +
+                    "-r ${properties[getString(R.string.frames_per_second)]} " +
                     "-safe 0 " +
                     "-i ${context.getFileStreamPath("ffmpeg_list.txt").absolutePath} " +
                     "-c:v libx264 " +
@@ -106,7 +106,7 @@ object Timelapse {
                 if (FFmpeg.execute(ffmpegMakeFinal) == 0) {
                     showSuccessNotification(notificationId, openIntent, shareIntent)
 
-                    if (openWhenFinished) {
+                    if (properties[getString(R.string.open_when_finished)] as Boolean) {
                         openIntent.send()
                     }
                 } else {
