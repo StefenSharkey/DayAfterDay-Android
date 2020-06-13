@@ -55,6 +55,7 @@ object Timelapse {
         this.context = context
 
         val notificationId = getNotificationId()
+        val tempFileList = "ffmpeg_list.txt"
 
         try {
             tempDir.mkdir()
@@ -67,7 +68,7 @@ object Timelapse {
             val files = removeDirectories(pictureDir.listFiles() ?: return).sorted()
 
             // Create file containing list of files.
-            writeToFile("ffmpeg_list.txt", files.joinToString("\n file ", "file "))
+            writeToFile(tempFileList, files.joinToString("\n file ", "file "))
 
             val res = properties[getString(R.string.resolution)] as Resolution
 
@@ -75,7 +76,7 @@ object Timelapse {
             val ffmpegMakeTemp = "-f concat " +
                     "-r ${properties[getString(R.string.frames_per_second)]} " +
                     "-safe 0 " +
-                    "-i ${context.getFileStreamPath("ffmpeg_list.txt").absolutePath} " +
+                    "-i ${context.getFileStreamPath(tempFileList).absolutePath} " +
                     "-c:v libx264 " +
                     "-vf \"scale='min(${res.width},iw)':'min(${res.height},ih)'\" " +
                     tempTimelapseFile.absolutePath
@@ -118,6 +119,9 @@ object Timelapse {
             }
         } catch (e: InterruptedException) {
             logDebug("Canceled timelapse generation.")
+        } finally {
+            context.deleteFile(tempFileList)
+            tempDir.deleteRecursively()
         }
 
         isRendering = false
