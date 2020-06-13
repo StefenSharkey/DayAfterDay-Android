@@ -77,7 +77,7 @@ object Timelapse {
                     "-r ${properties[getString(R.string.frames_per_second)]} " +
                     "-safe 0 " +
                     "-i ${context.getFileStreamPath(tempFileList).absolutePath} " +
-                    "-c:v libx264 " +
+                    "-c:v ${(properties[getString(R.string.encoding_format)] as EncodingFormat).encodingFormat} " +
                     "-vf \"scale='min(${res.width},iw)':'min(${res.height},ih)'\" " +
                     tempTimelapseFile.absolutePath
             val ffmpegMakeFinal = "-i ${tempTimelapseFile.absolutePath} " +

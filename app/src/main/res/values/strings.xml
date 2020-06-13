@@ -44,6 +44,7 @@
 
     <string name="frames_per_second">Frames Per Second</string>
     <string name="resolution">Resolution</string>
+    <string name="encoding_format">Encoding Format</string>
     <string name="open_when_finished">Open when finished</string>
 
     <string-array name="resolutions_array">
@@ -51,6 +52,11 @@
         <item>1080p</item>
         <item>1440p</item>
         <item>2160p (4K)</item>
+    </string-array>
+
+    <string-array name="encoding_formats_array">
+        <item>H.x264/MPEG-4 (larger, but faster)</item>
+        <item>HEVC/H.265 (smaller, but slower)</item>
     </string-array>
 
     <!-- Content Descriptions -->

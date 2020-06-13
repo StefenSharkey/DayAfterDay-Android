@@ -37,10 +37,27 @@
 
         <Spinner
             android:id="@+id/timelapse_resolution_spinner"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/timelapse_frames_per_second"
+            app:layout_constraintLeft_toRightOf="@id/timelapse_resolution_label"
+            app:layout_constraintRight_toRightOf="parent" />
+
+        <TextView
+            android:id="@+id/timelapse_encoding_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            app:layout_constraintTop_toBottomOf="@id/timelapse_frames_per_second"
+            android:text="@string/encoding_format"
+            app:layout_constraintTop_toTopOf="@id/timelapse_encoding_format_spinner"
+            app:layout_constraintBottom_toBottomOf="@id/timelapse_encoding_format_spinner"
+            app:layout_constraintLeft_toLeftOf="parent" />
+
+        <Spinner
+            android:id="@+id/timelapse_encoding_format_spinner"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/timelapse_resolution_spinner"
+            app:layout_constraintLeft_toRightOf="@id/timelapse_encoding_label"
             app:layout_constraintRight_toRightOf="parent" />
 
         <androidx.appcompat.widget.AppCompatCheckBox
@@ -49,7 +66,7 @@
             android:layout_height="wrap_content"
             android:checked="false"
             android:text="@string/open_when_finished"
-            app:layout_constraintTop_toBottomOf="@id/timelapse_resolution_spinner"
+            app:layout_constraintTop_toBottomOf="@id/timelapse_encoding_format_spinner"
             app:layout_constraintLeft_toLeftOf="parent"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.core.widget.NestedScrollView>

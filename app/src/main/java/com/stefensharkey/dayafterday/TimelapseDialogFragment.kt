@@ -30,6 +30,7 @@ class TimelapseDialogFragment : AppCompatDialogFragment(), AdapterView.OnItemSel
         properties = hashMapOf(
             Pair(getString(R.string.frames_per_second), 10),
             Pair(getString(R.string.resolution), Resolution.RES_1080P),
+            Pair(getString(R.string.encoding_format), EncodingFormat.X264),
             Pair(getString(R.string.open_when_finished), false)
         )
 
@@ -86,6 +87,22 @@ class TimelapseDialogFragment : AppCompatDialogFragment(), AdapterView.OnItemSel
             spinner.onItemSelectedListener = this
         }
 
+        // Encoding Format Spinner
+        // Fill spinner
+        ArrayAdapter.createFromResource(
+            requireContext(),
+            R.array.encoding_formats_array,
+            android.R.layout.simple_spinner_dropdown_item
+        ).also { adapter ->
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            timelapse_encoding_format_spinner.adapter = adapter
+        }
+
+        timelapse_encoding_format_spinner.also { spinner ->
+            spinner.setSelection((properties[getString(R.string.encoding_format)] as EncodingFormat).ordinal)
+            spinner.onItemSelectedListener = this
+        }
+
         // Open when finished CheckBox
         timelapse_open_when_finished.setOnCheckedChangeListener { _, isChecked ->
             properties[getString(R.string.open_when_finished)] = isChecked
@@ -110,6 +127,9 @@ class TimelapseDialogFragment : AppCompatDialogFragment(), AdapterView.OnItemSel
     }
 
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-        properties[getString(R.string.resolution)] = Resolution.values()[position]
+        when (parent?.id) {
+            R.id.timelapse_resolution_spinner -> properties[getString(R.string.resolution)] = Resolution.values()[position]
+            R.id.timelapse_encoding_format_spinner -> properties[getString(R.string.encoding_format)] = EncodingFormat.values()[position]
+        }
     }
 }
