@@ -17,18 +17,19 @@
 package com.stefensharkey.dayafterday
 
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import com.stefensharkey.dayafterday.Utilities.getPreviousPicture
 import com.stefensharkey.dayafterday.Utilities.logDebug
-import com.stefensharkey.dayafterday.Utilities.thumbnailDir
+import com.stefensharkey.dayafterday.Utilities.pictureDir
 import kotlinx.android.synthetic.main.fragment_gallery.*
-import java.io.File
 
-class GalleryFragment: Fragment() {
+class GalleryFragment : Fragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -43,7 +44,7 @@ class GalleryFragment: Fragment() {
 
         setMainPhoto(getPreviousPicture())
 
-        val files = thumbnailDir.listFiles()
+        val files = pictureDir.listFiles()
 
         // Checks if any files exist.
         if (files != null) {
@@ -54,7 +55,7 @@ class GalleryFragment: Fragment() {
 
                 // Pass the path of the fragment's photo as an argument.
                 val arguments = Bundle()
-                arguments.putString("file_addr", file.absolutePath)
+                arguments.putString("file_addr", file.toUri().toString())
 
                 logDebug(file.absolutePath)
 
@@ -67,15 +68,8 @@ class GalleryFragment: Fragment() {
     /**
      * Sets the main photo to the drawable at the given path.
      */
-    fun setMainPhotoFromThumbnail(path: String) {
-        setMainPhoto(getFullPhoto(path))
-    }
-
-    /**
-     * Sets the main photo to the drawable at the given path.
-     */
-    private fun setMainPhoto(path: String?) {
-        setMainPhoto(Drawable.createFromPath(path))
+    fun setMainPhoto(uri: Uri) {
+        setMainPhoto(Drawable.createFromPath(uri.path))
     }
 
     /**
@@ -83,17 +77,5 @@ class GalleryFragment: Fragment() {
      */
     private fun setMainPhoto(drawable: Drawable?) {
         gallery_main_photo.setImageDrawable(drawable)
-    }
-
-    private fun getFullPhoto(path: String): String {
-        val file = File(path)
-
-        val oldName = file.nameWithoutExtension
-
-        // The new name is created by removing the length of the thumbnail suffix from the old
-        // name.
-        val newName = oldName.substring(0, oldName.length - 6) + "." + file.extension
-
-        return File(Utilities.pictureDir, newName).absolutePath
     }
 }

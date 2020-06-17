@@ -34,7 +34,6 @@ object Utilities {
     private const val logTag = "Day After Day"
     val fileDir: File = File("${Environment.getExternalStorageDirectory()}/DayAfterDay")
     val pictureDir: File = File(fileDir, "pictures")
-    val thumbnailDir: File = File(fileDir, "thumbnails")
     val timelapseDir: File = File(fileDir, "timelapses")
     val tempDir: File by lazy { File(context.filesDir, "temp") }
 
@@ -79,14 +78,6 @@ object Utilities {
 
     fun getNotificationId(): Int {
         return notificationId.incrementAndGet()
-    }
-
-    fun getThumbnail(path: String): String {
-        val file = File(path)
-
-        // The new name is created by inserting into the old name.
-        val newName = "${file.nameWithoutExtension}-thumb.${file.extension}"
-        return File(thumbnailDir, newName).absolutePath
     }
 
     fun getTime(): String {

@@ -19,20 +19,14 @@ package com.stefensharkey.dayafterday
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AlphaAnimation
 import android.webkit.MimeTypeMap
-import android.widget.ImageView
 import android.widget.SeekBar
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.Camera
@@ -51,18 +45,13 @@ import com.stefensharkey.dayafterday.Utilities.getPreviousPicture
 import com.stefensharkey.dayafterday.Utilities.logDebug
 import com.stefensharkey.dayafterday.Utilities.logError
 import com.stefensharkey.dayafterday.Utilities.pictureDir
-import com.stefensharkey.dayafterday.Utilities.thumbnailDir
 import com.stefensharkey.dayafterday.Utilities.toastLong
 import com.stefensharkey.dayafterday.Utilities.toastShort
 import kotlinx.android.synthetic.main.fragment_main.*
 import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
-import java.io.OutputStream
 import java.lang.Exception
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import kotlin.math.floor
 
 class MainFragment : Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener {
 
@@ -99,7 +88,6 @@ class MainFragment : Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener
         // Create the necessary directories.
         fileDir.mkdir()
         pictureDir.mkdir()
-        thumbnailDir.mkdir()
 
         // If all the permissions required are granted, show the camera; otherwise, request the permissions.
         if (allPermissionsGranted()) {
@@ -111,7 +99,7 @@ class MainFragment : Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener
         createListeners()
 
         prev_picture.alpha = prev_picture_slider.progress.toFloat() / 100.0F
-        createPreviousPicture(prev_picture)
+        createPreviousPicture()
     }
 
     private fun createListeners() {
@@ -180,12 +168,14 @@ class MainFragment : Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener
     /**
      * Create a shadow of the previous picture controlled by the previous picture SeekBar.
      */
-    fun createPreviousPicture(prevPictureView: ImageView) {
-        val prevPicture = getPreviousPicture()
+    fun createPreviousPicture() {
+        prev_picture.post {
+            val prevPicture = getPreviousPicture()
 
-        // Check if file list is empty. If yes, do nothing.
-        if (prevPicture != null) {
-            prevPictureView.setImageDrawable(getPreviousPicture())
+            // If there is a previous picture, display it.
+            if (prevPicture != null) {
+                prev_picture.setImageDrawable(prevPicture)
+            }
         }
     }
 
@@ -324,12 +314,7 @@ class MainFragment : Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener
                         logDebug("Image capture scanned into media store: $uri")
                     }
 
-                    Handler(Looper.getMainLooper()).post {
-                        createPreviousPicture(prev_picture)
-                    }
-
-                    // Save a thumbnail for the gallery.
-                    saveThumbnail(file)
+                    createPreviousPicture()
 
                     logDebug("Photo saved: $savedUri")
                 }
@@ -337,48 +322,6 @@ class MainFragment : Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener
         )
 
         logDebug(file.absolutePath)
-    }
-
-    fun saveThumbnail(file: File) {
-        val thumbnail =
-            getThumbnail(Drawable.createFromPath(file.absolutePath) ?: return).bitmap
-        val thumbnailFile =
-            File(thumbnailDir, "${file.nameWithoutExtension}-thumb.${file.extension}")
-
-        try {
-            val stream: OutputStream = FileOutputStream(thumbnailFile)
-
-            thumbnail.compress(Bitmap.CompressFormat.JPEG, 100, stream)
-
-            stream.flush()
-            stream.close()
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-
-    }
-
-    private fun getThumbnail(originalImage: Drawable): BitmapDrawable {
-        val originalBitmap = (originalImage as BitmapDrawable).bitmap
-
-        var width = originalBitmap.width.toFloat()
-        var height = originalBitmap.height.toFloat()
-        val maxSize = 100.0F
-
-        if (width > maxSize || height > maxSize) {
-            if (width > height) {
-                height = floor((height / width) * maxSize)
-                width = maxSize
-            } else {
-                width = floor((width / height) * maxSize)
-                height = maxSize
-            }
-        }
-
-        val scaledBitmap =
-            Bitmap.createScaledBitmap(originalBitmap, width.toInt(), height.toInt(), false)
-
-        return BitmapDrawable(context?.resources, scaledBitmap)
     }
 
     /**

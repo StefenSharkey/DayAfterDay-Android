@@ -16,12 +16,13 @@
 
 package com.stefensharkey.dayafterday
 
-import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.fragment_photo.*
 
 class GalleryPhotoFragment : Fragment() {
@@ -37,13 +38,21 @@ class GalleryPhotoFragment : Fragment() {
     override fun onStart() {
         super.onStart()
 
+        val uri = Uri.parse(arguments?.getString("file_addr"))
+
         gallery_photo_layout.setOnClickListener {
-            (parentFragment as GalleryFragment).setMainPhotoFromThumbnail(
-                arguments?.getString("file_addr")
-                    ?: return@setOnClickListener
-            )
+            (parentFragment as GalleryFragment).setMainPhoto(uri)
         }
 
-        gallery_photo.setImageDrawable(Drawable.createFromPath(arguments?.getString("file_addr")))
+        Thread(Runnable {
+            gallery_photo.post {
+                Glide.with(this)
+                    .load(uri)
+                    .fitCenter()
+                    .into(gallery_photo)
+
+                gallery_photo_loading.visibility = View.GONE
+            }
+        }).start()
     }
 }
