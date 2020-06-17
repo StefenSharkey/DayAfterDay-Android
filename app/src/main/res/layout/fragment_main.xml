@@ -42,7 +42,7 @@
         app:layout_constraintEnd_toEndOf="parent" />
 
     <ImageButton
-        android:id="@+id/settings_button"
+        android:id="@+id/preferences_button"
         android:src="@android:drawable/ic_menu_preferences"
         android:backgroundTint="@android:color/transparent"
         android:layout_width="wrap_content"

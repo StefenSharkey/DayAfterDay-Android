@@ -133,7 +133,9 @@ class MainFragment : Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener
             }
         }
 
-        settings_button.setOnClickListener { openSettings() }
+        preferences_button.setOnClickListener {
+            startActivity(Intent(activity, PreferenceActivity::class.java))
+        }
     }
 
     /**
@@ -331,12 +333,5 @@ class MainFragment : Fragment(), LifecycleOwner, SeekBar.OnSeekBarChangeListener
         val animation = AlphaAnimation(0.0F, 1.0F)
         animation.duration = 250
         viewfinder.startAnimation(animation)
-    }
-
-    /**
-     * Upon the settings button being pressed, open the settings.
-     */
-    private fun openSettings() {
-        startActivity(Intent(activity, SettingsActivity::class.java))
     }
 }

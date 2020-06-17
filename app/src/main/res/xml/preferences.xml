@@ -14,14 +14,15 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
 -->
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <Preference
-        android:id="@+id/preference_send_feedback"
-        android:key="preference_send_feedback"
-        android:title="@string/preference_send_feedback" />
+<PreferenceScreen
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:title="@string/preference_title">
 
     <Preference
-        android:id="@+id/preference_about"
-        android:key="preference_about"
-        android:title="@string/preference_about_title" />
+        app:key="@string/key_preference_send_feedback"
+        app:title="@string/preference_send_feedback" />
+
+    <Preference
+        app:title="@string/preference_about_title"
+        app:fragment="com.stefensharkey.dayafterday.PreferenceActivity$PreferenceAboutFragment" />
 </PreferenceScreen>

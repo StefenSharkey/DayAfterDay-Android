@@ -18,12 +18,16 @@
     <string name="author_name" translatable="false">Stefen Sharkey</string>
     <string name="author_email" translatable="false">stefensharkey@gmail.com</string>
 
-    <!-- Setting Titles and Descriptions -->
-    <string name="settings_title">Settings</string>
+    <!-- Preference Titles and Descriptions -->
+    <string name="preference_title">Preferences</string>
     <string name="preference_send_feedback">Send Feedback</string>
     <string name="preference_about_title">About</string>
     <string name="preference_version_title">Build Version</string>
     <string name="preference_author_title">Author</string>
+
+    <string name="key_preference_author">preferences_author</string>
+    <string name="key_preference_send_feedback">preference_send_feedback</string>
+    <string name="key_preference_version">preferences_version</string>
 
     <string name="gallery_title">Gallery</string>
 

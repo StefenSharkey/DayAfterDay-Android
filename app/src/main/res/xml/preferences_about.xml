@@ -14,16 +14,20 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
 -->
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    app:title="@string/preference_about_title">
     <Preference
-        android:id="@+id/preference_version"
-        android:key="preference_version"
-        android:title="@string/preference_version_title" />
+        app:key="preferences_version"
+        app:title="@string/preference_version_title" />
 
     <Preference
-        android:id="@+id/preference_author"
-        android:key="preference_author"
-        android:title="@string/preference_author_title"
-        android:summary="@string/author_name" />
+        app:key="@string/key_preference_author"
+        app:title="@string/preference_author_title"
+        app:summary="@string/author_name">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="https://github.com/StefenSharkey" />
+    </Preference>
 
 </PreferenceScreen>
